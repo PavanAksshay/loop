@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import LoopLogo from "./LoopLogo";
 import {
-  Trees,
   Check,
   User,
   Calendar,
@@ -31,7 +31,6 @@ import {
   Upload,
 } from "lucide-react";
 import FogTransition from "./FogTransition";
-import LoopLogo from "./LoopLogo";
 import DatePicker from "./DatePicker";
 import { DEFAULT_AVATARS } from "../types";
 import { isSupabaseConfigured } from "../lib/supabase";
@@ -629,7 +628,7 @@ export default function OnboardingFlow({
         <div className="p-3.5 rounded-3xl bg-[#f0e4cc] border border-black/30">
           <LoopLogo size={64} glow={true} />
         </div>
-        <div className="font-logo text-4xl md:text-5xl font-semibold bioluminescent-text italic tracking-tighter">
+        <div className="font-logo text-4xl md:text-5xl font-normal bioluminescent-text uppercase tracking-wider">
           Loop
         </div>
         <p className="text-base md:text-lg text-gray-500 font-medium leading-relaxed max-w-sm mx-auto text-accent-serif">
@@ -1738,7 +1737,7 @@ export default function OnboardingFlow({
         <div className="col-span-2">
           <PrimaryButton type="submit" busy={busy} disabled={!acceptedTerms || !acceptedSafety}>
             <span>Enter Loop</span>
-            {!busy && <Trees className="w-4 h-4" />}
+            {!busy && <LoopLogo size={18} />}
           </PrimaryButton>
         </div>
       </div>
@@ -1753,8 +1752,8 @@ export default function OnboardingFlow({
     <div className="min-h-screen bg-[#f8f1e3] text-black flex flex-col relative font-sans overflow-x-hidden">
       {/* Header — identical language to the dashboard header */}
       <header className="sticky top-0 z-[100] bg-[#f8f1e3]/90 backdrop-blur-2xl border-b border-black/30 px-4 md:px-10 py-3.5 flex justify-between items-center shadow-lg">
-        <div className="font-logo text-[22px] md:text-[28px] font-semibold text-[var(--wb-text)] italic tracking-tighter flex items-center gap-2">
-          <Trees className="w-6 h-6 text-black" />
+        <div className="font-logo text-[24px] md:text-[30px] font-normal text-[var(--wb-text)] uppercase tracking-wider flex items-center gap-2">
+          <LoopLogo size={28} />
           <span>Loop</span>
         </div>
 

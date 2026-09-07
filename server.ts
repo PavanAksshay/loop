@@ -25,9 +25,9 @@ app.use((req, res, next) => {
     [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Vite needs unsafe-inline/eval in dev
-      "style-src 'self' 'unsafe-inline'", // Tailwind/React need unsafe-inline
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Tailwind/React/Google Fonts
       "img-src 'self' data: https:", // Allow data URLs and HTTPS images
-      "font-src 'self' data:",
+      "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co", // Supabase realtime
       "frame-ancestors 'none'",
       "form-action 'self'",

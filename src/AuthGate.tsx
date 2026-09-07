@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Trees, Loader2, AlertTriangle, Database, Zap } from "lucide-react";
+import { Loader2, AlertTriangle, Database, Zap } from "lucide-react";
 import App from "./App";
 import OnboardingFlow from "./components/OnboardingFlow";
+import LoopLogo from "./components/LoopLogo";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 import { ProfileRow, ensureProfile, fetchProfile, signOut } from "./lib/db";
 import { DEFAULT_AVATARS } from "./types";
@@ -152,7 +153,7 @@ VITE_SUPABASE_ANON_KEY=<your anon public key>`}
       <Shell>
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-3xl bg-black/5 border border-black/15 flex items-center justify-center">
-            <Trees className="w-8 h-8 text-black" />
+            <LoopLogo size={36} glow />
           </div>
           <div className="flex items-center gap-2 text-[11px] uppercase font-black tracking-wider text-gray-600">
             <Loader2 className="w-4 h-4 animate-spin text-black" />

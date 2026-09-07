@@ -8,7 +8,6 @@ import {
   Bell,
   X,
   Footprints,
-  Trees,
   Check,
   Phone,
   Mail,
