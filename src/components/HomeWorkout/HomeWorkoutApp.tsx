@@ -678,91 +678,122 @@ export default function HomeWorkoutApp() {
             ============================================================== */}
         {currentScreen === "playlist" && (
           <section className="hw-screen">
-            {/* Header Banner */}
-            <div className="hw-details-banner">
-              <img
-                src={selectedRoutine.coverImage}
-                alt={selectedRoutine.title}
-                className="hw-banner-img"
-              />
-              <div className="hw-banner-overlay"></div>
+            {/* Top Navigation / Back bar */}
+            <div className="flex items-center justify-between pb-2">
               <button
-                className="hw-banner-back-btn"
                 onClick={() => setCurrentScreen("home")}
+                className="flex items-center gap-1 text-xs font-bold text-[#486581] hover:text-[#0B2238] transition-colors p-1 cursor-pointer"
               >
-                <ChevronLeft className="w-5 h-5 text-white" />
+                <ChevronLeft className="w-4 h-4" />
+                <span>Workouts</span>
               </button>
-              <div className="hw-banner-content">
-                <span className="hw-badge-white">{selectedRoutine.levelName}</span>
-                <h1 className="hw-banner-title">{selectedRoutine.title}</h1>
-                <p className="hw-banner-sub">{selectedRoutine.subtitle}</p>
-              </div>
             </div>
 
-            {/* Quick Stats Strip */}
-            <div className="hw-quick-stats-strip">
-              <div className="hw-stat-pill">
-                <span className="hw-stat-icon-blue">
-                  <Clock className="w-3.5 h-3.5" />
-                </span>
-                <div>
-                  <div className="hw-stat-value">{selectedRoutine.durationMin} Min</div>
-                  <div className="hw-stat-caption">Duration</div>
-                </div>
-              </div>
-              <div className="hw-stat-pill">
-                <span className="hw-stat-icon-blue">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </span>
-                <div>
-                  <div className="hw-stat-value">3 Rounds</div>
-                  <div className="hw-stat-caption">Circuit Flow</div>
-                </div>
-              </div>
-              <div className="hw-stat-pill">
-                <span className="hw-stat-icon-blue">
-                  <Flame className="w-3.5 h-3.5 text-[#FF7043]" />
-                </span>
-                <div>
-                  <div className="hw-stat-value">{selectedRoutine.focus.split(" ")[0]}</div>
-                  <div className="hw-stat-caption">Focus Area</div>
-                </div>
-              </div>
+            {/* Title Area */}
+            <div className="space-y-1 mb-4">
+              <span className="text-xs font-bold text-[#486581] tracking-wide block">
+                {selectedRoutine.levelName || `${selectedRoutine.level} • Weeks 1-4`}
+              </span>
+              <h1 className="font-headline text-2xl sm:text-3xl font-black text-[#0B2238] tracking-tight leading-tight">
+                {selectedRoutine.title}
+              </h1>
+              {selectedRoutine.subtitle && (
+                <p className="text-sm font-semibold text-[#486581]">
+                  {selectedRoutine.subtitle}
+                </p>
+              )}
             </div>
 
-            {/* Routine Schedule */}
-            <div className="mb-4 mt-2">
-              <div className="hw-section-title-row">
-                <h3 className="hw-section-title">Routine Schedule</h3>
-                <span className="hw-step-count-text">
-                  {selectedRoutine.exercises.length} Exercises
-                </span>
+            {/* Hero Container with 3 Stats Pill Cards overlaid on the physique visual */}
+            <div className="relative w-full rounded-3xl overflow-hidden mb-5 shadow-sm border border-[#D7EBF7] bg-[#EAF3F9]">
+              {/* Background Visual Banner */}
+              <div className="relative w-full h-44 sm:h-52 overflow-hidden">
+                <img
+                  src={selectedRoutine.coverImage}
+                  alt={selectedRoutine.title}
+                  className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#EAF3F9]/30 to-[#EAF3F9]" />
               </div>
 
-              <div className="hw-exercise-list-items">
-                {selectedRoutine.exercises.map((ex, idx) => (
-                  <div
-                    key={ex.id}
-                    className={`hw-exercise-item ${idx === currentExerciseIndex ? "active" : ""}`}
-                    onClick={() => startLiveWorkout(selectedRoutine, idx)}
-                  >
-                    <div className="hw-exercise-num">
-                      {String(idx + 1).padStart(2, "0")}
-                    </div>
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#0F2942] border border-[#87CEEB]/40 shrink-0 flex items-center justify-center p-0.5">
-                      <ExerciseFormVisual
-                        exerciseId={ex.id}
-                        exerciseName={ex.name}
-                      />
-                    </div>
-                    <div className="hw-exercise-meta flex-1">
-                      <h4 className="hw-ex-name">{ex.name}</h4>
-                      <p className="hw-ex-target">{ex.targetMuscles}</p>
-                    </div>
-                    <div className="hw-ex-pill">{ex.reps}</div>
+              {/* 3 Metric Pills on Top */}
+              <div className="absolute top-3 left-3 right-3 flex items-center gap-2">
+                {/* Pill 1: Duration */}
+                <div className="flex-1 bg-white/90 backdrop-blur-md border border-[#D7EBF7] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 shadow-sm min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#EAF3F9] text-[#1B6E99] flex items-center justify-center shrink-0">
+                    <Clock className="w-3.5 h-3.5" />
                   </div>
-                ))}
+                  <div className="min-w-0">
+                    <div className="font-extrabold text-xs text-[#0B2238] leading-tight truncate">
+                      {selectedRoutine.durationMin} Min
+                    </div>
+                    <div className="text-[10px] text-[#7A97B0] font-medium leading-tight truncate">
+                      Duration
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pill 2: Circuit */}
+                <div className="flex-1 bg-white/90 backdrop-blur-md border border-[#D7EBF7] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 shadow-sm min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#EAF3F9] text-[#1B6E99] flex items-center justify-center shrink-0">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-extrabold text-xs text-[#0B2238] leading-tight truncate">
+                      3 Rounds
+                    </div>
+                    <div className="text-[10px] text-[#7A97B0] font-medium leading-tight truncate">
+                      Circuit
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pill 3: Focus Area */}
+                <div className="flex-1 bg-white/90 backdrop-blur-md border border-[#D7EBF7] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 shadow-sm min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FFF2E8] text-[#FF7043] flex items-center justify-center shrink-0">
+                    <Flame className="w-3.5 h-3.5 fill-current" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-extrabold text-xs text-[#0B2238] leading-tight truncate">
+                      {selectedRoutine.focus.split(" ")[0]}
+                    </div>
+                    <div className="text-[10px] text-[#7A97B0] font-medium leading-tight truncate">
+                      Focus Area
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Exercise List Items - Clean Numbered Pill Cards */}
+            <div className="space-y-3 mb-6">
+              {selectedRoutine.exercises.map((ex, idx) => (
+                <div
+                  key={ex.id}
+                  onClick={() => startLiveWorkout(selectedRoutine, idx)}
+                  className="bg-[#EAF3F9] hover:bg-[#DDF0FC] border border-[#BCE1F5] rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all cursor-pointer shadow-sm active:scale-[0.99] group"
+                >
+                  {/* Left: Big Number 01, 02, etc. */}
+                  <div className="font-headline font-black text-3xl sm:text-4xl text-[#1B6E99] tracking-tighter w-14 sm:w-16 shrink-0 pr-3 border-r border-[#BCE1F5] flex items-center justify-center">
+                    {String(idx + 1).padStart(2, "0")}
+                  </div>
+
+                  {/* Middle: Exercise Name + Minimal Target Muscle subtext */}
+                  <div className="flex-1 min-w-0 pl-1">
+                    <h4 className="font-bold text-sm sm:text-base text-[#0B2238] leading-snug truncate">
+                      {ex.name}
+                    </h4>
+                    <p className="text-xs text-[#486581] font-medium mt-0.5 truncate">
+                      {ex.targetMuscles || ex.category}
+                    </p>
+                  </div>
+
+                  {/* Right: Reps */}
+                  <div className="text-xs sm:text-sm font-bold text-[#0B2238] shrink-0 whitespace-nowrap pl-2">
+                    {ex.reps}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Start Full Workout Button */}
