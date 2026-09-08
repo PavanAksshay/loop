@@ -428,24 +428,68 @@ export default function HomeWorkoutApp() {
           <button
             onClick={() => navigate("/")}
             title="Return to Track Selector"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#D7EBF7] text-xs font-bold text-[#0B2238] hover:bg-[#EAF3F9] transition-all cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-black/30 bg-[#f8f1e3] text-xs font-black uppercase tracking-wider text-black hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
             <span>Tracks</span>
           </button>
-          <div className="flex items-center gap-2">
-            <LoopLogo size={24} glow />
-            <span className="font-logo text-2xl uppercase tracking-wider text-[#0B2238]" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}>
-              Loop
-            </span>
+          <div 
+            onClick={() => setCurrentScreen("home")}
+            className="cursor-pointer hover:opacity-85 active:scale-95 transition-all flex items-center gap-2"
+          >
+            <LoopLogo size={44} glow showText={true} textClassName="text-[22px] md:text-[26px]" />
           </div>
+
+          {/* Desktop Navigation matching Running section */}
+          <nav className="hidden md:flex gap-8 ml-6">
+            <button
+              onClick={() => setCurrentScreen("home")}
+              className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
+                currentScreen === "home"
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Discover
+            </button>
+            <button
+              onClick={() => setCurrentScreen("playlist")}
+              className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
+                currentScreen === "playlist"
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Workouts
+            </button>
+            <button
+              onClick={() => setCurrentScreen("progress")}
+              className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
+                currentScreen === "progress"
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Volume & PRs
+            </button>
+            <button
+              onClick={() => setCurrentScreen("profile")}
+              className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
+                currentScreen === "profile"
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-500 hover:text-black"
+              }`}
+            >
+              Profile
+            </button>
+          </nav>
         </div>
 
         {/* Top Right Controls: Profile */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setCurrentScreen("profile")}
-            className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#87CEEB] hover:scale-105 transition-transform cursor-pointer"
+            className="w-9 h-9 rounded-full overflow-hidden border-2 border-black/20 hover:border-black hover:scale-105 transition-all cursor-pointer shadow-xs"
             title="Your Profile"
           >
             <img src={userProfile.avatar_url} alt={userProfile.full_name} className="w-full h-full object-cover" />
@@ -1508,38 +1552,67 @@ export default function HomeWorkoutApp() {
       </main>
 
       {/* ================================================================
-          BOTTOM TAB NAVIGATION
+          BOTTOM TAB NAVIGATION (Matches Running Section)
           ================================================================ */}
-      <nav className="hw-bottom-nav">
-        <button
-          className={`hw-nav-tab ${currentScreen === "home" ? "active" : ""}`}
-          onClick={() => setCurrentScreen("home")}
-        >
-          <Activity className="w-4 h-4" />
-          <span>Discover</span>
-        </button>
-        <button
-          className={`hw-nav-tab ${currentScreen === "playlist" ? "active" : ""}`}
-          onClick={() => setCurrentScreen("playlist")}
-        >
-          <Dumbbell className="w-4 h-4" />
-          <span>Workouts</span>
-        </button>
-        <button
-          className={`hw-nav-tab ${currentScreen === "progress" ? "active" : ""}`}
-          onClick={() => setCurrentScreen("progress")}
-        >
-          <TrendingUp className="w-4 h-4" />
-          <span>Volume & PRs</span>
-        </button>
-        <button
-          className={`hw-nav-tab ${currentScreen === "profile" ? "active" : ""}`}
-          onClick={() => setCurrentScreen("profile")}
-        >
-          <User className="w-4 h-4" />
-          <span>Profile</span>
-        </button>
-      </nav>
+      {currentScreen !== "player" && (
+        <nav className="fixed bottom-0 left-0 w-full z-[100] bg-[#f8f1e3]/95 backdrop-blur-2xl rounded-t-2xl shadow-[0px_-10px_30px_rgba(0,0,0,0.12)] flex justify-around items-center px-4 py-3 md:hidden border-t border-black/30">
+          <button
+            onClick={() => setCurrentScreen("home")}
+            className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              currentScreen === "home"
+                ? "text-black font-black bg-[#f0e4cc]"
+                : "text-gray-400 hover:text-black"
+            }`}
+          >
+            <Activity className="w-5.5 h-5.5 text-black" />
+            <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
+              Discover
+            </span>
+          </button>
+
+          <button
+            onClick={() => setCurrentScreen("playlist")}
+            className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              currentScreen === "playlist"
+                ? "text-black font-black bg-[#f0e4cc]"
+                : "text-gray-400 hover:text-black"
+            }`}
+          >
+            <Dumbbell className="w-5.5 h-5.5 text-black" />
+            <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
+              Workouts
+            </span>
+          </button>
+
+          <button
+            onClick={() => setCurrentScreen("progress")}
+            className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              currentScreen === "progress"
+                ? "text-black font-black bg-[#f0e4cc]"
+                : "text-gray-400 hover:text-black"
+            }`}
+          >
+            <TrendingUp className="w-5.5 h-5.5 text-black" />
+            <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
+              Volume & PRs
+            </span>
+          </button>
+
+          <button
+            onClick={() => setCurrentScreen("profile")}
+            className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              currentScreen === "profile"
+                ? "text-black font-black bg-[#f0e4cc]"
+                : "text-gray-400 hover:text-black"
+            }`}
+          >
+            <User className="w-5.5 h-5.5 text-black" />
+            <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
+              Profile
+            </span>
+          </button>
+        </nav>
+      )}
 
       {/* ================================================================
           INTELLIGENT REST TIMER MODAL

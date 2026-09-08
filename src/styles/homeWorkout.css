@@ -134,10 +134,17 @@
    ========================================================================== */
 .hw-app-container {
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   margin: 0 auto;
-  padding: 16px 16px 90px;
+  padding: 16px 16px 110px;
   min-height: calc(100vh - 60px);
+}
+
+@media (min-width: 768px) {
+  .hw-app-container {
+    max-width: 860px;
+    padding: 24px 24px 60px;
+  }
 }
 
 .hw-screen {
