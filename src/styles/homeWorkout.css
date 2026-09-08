@@ -3,6 +3,11 @@
    MOBILE-FIRST, HIGH-CONTRAST PAPERPILLAR INSPIRED UI
    ========================================================================== */
 
+.font-logo {
+  font-family: 'Bebas Neue', sans-serif !important;
+  letter-spacing: 0.08em;
+}
+
 .hw-theme-root {
   /* Primary Theme Palette (#87CEEB) */
   --hw-primary: #87CEEB;

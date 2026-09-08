@@ -2,10 +2,23 @@
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('./assets/BebasNeue-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-headline: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-logo: "Bebas Neue", sans-serif;
+}
+
+.font-logo {
+  font-family: "Bebas Neue", sans-serif !important;
+  letter-spacing: 0.08em;
 }
 
 /* ======================================================================

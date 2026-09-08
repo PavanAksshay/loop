@@ -18,7 +18,6 @@ import {
   Pencil,
   Dumbbell,
   Check,
-  Music,
   RefreshCw,
   Mail,
   ShieldCheck,
@@ -69,8 +68,7 @@ export default function HomeWorkoutApp() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number>(0);
   const [completedRounds, setCompletedRounds] = useState<number[]>([]);
 
-  // Music & Full-Screen Rest Timer State
-  const [musicPlaying, setMusicPlaying] = useState<boolean>(false);
+  // Full-Screen Rest Timer State
   const [showRestModal, setShowRestModal] = useState<boolean>(false);
   const [restSecondsRemaining, setRestSecondsRemaining] = useState<number>(45);
   const [nextStepInfo, setNextStepInfo] = useState<{
@@ -119,14 +117,6 @@ export default function HomeWorkoutApp() {
     }, 2800);
   };
 
-  // Toggle Energetic Background Workout Music
-  const toggleMusic = () => {
-    workoutAudio.unlockContext();
-    const isNowPlaying = workoutAudio.toggleMusic();
-    setMusicPlaying(isNowPlaying);
-    showToast(isNowPlaying ? "⚡ Energetic Beat: ON 🎵" : "Workout Beat: OFF");
-  };
-
   // Rest Timer Interval
   useEffect(() => {
     let restInterval: NodeJS.Timeout | null = null;
@@ -170,10 +160,8 @@ export default function HomeWorkoutApp() {
     setCompletedRounds([]);
     setCurrentScreen("tracking");
 
-    // Unlock audio & start energetic music
+    // Unlock audio & cue beep
     workoutAudio.unlockContext();
-    workoutAudio.startMusic();
-    setMusicPlaying(true);
     workoutAudio.playCueBeep(520, 0.2);
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -218,8 +206,6 @@ export default function HomeWorkoutApp() {
   const skipRest = () => {
     setShowRestModal(false);
     workoutAudio.unlockContext();
-    workoutAudio.startMusic();
-    setMusicPlaying(true);
     workoutAudio.playCueBeep(520, 0.2);
 
     if (nextStepInfo.isFinish) {
@@ -236,9 +222,7 @@ export default function HomeWorkoutApp() {
   };
 
   const finishWorkout = () => {
-    workoutAudio.stopMusic();
     workoutAudio.playCelebrationChime();
-    setMusicPlaying(false);
     setShowRestModal(false);
 
     const totalSetsCompleted = totalRounds * selectedRoutine.exercises.length;
@@ -337,20 +321,12 @@ export default function HomeWorkoutApp() {
           </button>
           <div className="flex items-center gap-2">
             <LoopLogo size={24} glow />
-            <span className="font-logo text-2xl uppercase tracking-wider text-[#0B2238]">Loop</span>
+            <span className="font-logo text-2xl uppercase tracking-wider text-[#0B2238]" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}>Loop</span>
           </div>
         </div>
 
-        {/* Top Right Controls: Music Toggle & Profile */}
+        {/* Top Right Controls: Profile */}
         <div className="flex items-center gap-2">
-          <button
-            className={`hw-icon-action-btn ${musicPlaying ? "active shadow-md shadow-[#87CEEB]" : ""}`}
-            onClick={toggleMusic}
-            title={musicPlaying ? "Pause Workout Beat" : "Play Energetic Workout Beat"}
-          >
-            <Music className="w-4 h-4" />
-          </button>
-
           <button
             onClick={() => setCurrentScreen("profile")}
             className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#87CEEB] hover:scale-105 transition-transform cursor-pointer"
@@ -812,8 +788,6 @@ export default function HomeWorkoutApp() {
               <button
                 className="hw-nav-icon-btn cursor-pointer"
                 onClick={() => {
-                  workoutAudio.stopMusic();
-                  setMusicPlaying(false);
                   setCurrentScreen("playlist");
                 }}
               >
@@ -825,13 +799,7 @@ export default function HomeWorkoutApp() {
                   {selectedRoutine.title}
                 </h3>
               </div>
-              <button
-                className={`hw-nav-icon-btn cursor-pointer ${musicPlaying ? "bg-[#87CEEB]/30 border-[#87CEEB]" : ""}`}
-                onClick={toggleMusic}
-                title={musicPlaying ? "Pause Workout Music" : "Play Energetic Workout Music"}
-              >
-                <Music className="w-3.5 h-3.5 text-[#0B2238]" />
-              </button>
+              <div className="w-8" />
             </div>
 
             {/* Round & Step Progress */}
@@ -1358,7 +1326,7 @@ export default function HomeWorkoutApp() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <LoopLogo size={24} glow />
-              <span className="font-logo text-2xl uppercase tracking-wider text-[#87CEEB]">Loop Rest</span>
+              <span className="font-logo text-2xl uppercase tracking-wider text-[#87CEEB]" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}>Loop Rest</span>
             </div>
             <button
               onClick={skipRest}

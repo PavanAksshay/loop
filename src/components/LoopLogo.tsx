@@ -41,7 +41,10 @@ export default function LoopLogo({
       </div>
 
       {showText && (
-        <span className={`font-logo text-2xl uppercase tracking-wider text-[var(--wb-text)] ${textClassName}`}>
+        <span
+          className={`font-logo text-2xl uppercase tracking-wider text-[var(--wb-text)] ${textClassName}`}
+          style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}
+        >
           Loop
         </span>
       )}
