@@ -440,14 +440,14 @@ export default function HomeWorkoutApp() {
             <LoopLogo size={44} glow showText={true} textClassName="text-[22px] md:text-[26px]" />
           </div>
 
-          {/* Desktop Navigation matching Running section */}
+          {/* Desktop Navigation matching Workout app theme */}
           <nav className="hidden md:flex gap-8 ml-6">
             <button
               onClick={() => setCurrentScreen("home")}
               className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
                 currentScreen === "home"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-500 hover:text-black"
+                  ? "text-[#1B6E99] border-b-2 border-[#1B6E99] font-black"
+                  : "text-[#7A97B0] hover:text-[#0B2238]"
               }`}
             >
               Discover
@@ -456,8 +456,8 @@ export default function HomeWorkoutApp() {
               onClick={() => setCurrentScreen("playlist")}
               className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
                 currentScreen === "playlist"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-500 hover:text-black"
+                  ? "text-[#1B6E99] border-b-2 border-[#1B6E99] font-black"
+                  : "text-[#7A97B0] hover:text-[#0B2238]"
               }`}
             >
               Workouts
@@ -466,8 +466,8 @@ export default function HomeWorkoutApp() {
               onClick={() => setCurrentScreen("progress")}
               className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
                 currentScreen === "progress"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-500 hover:text-black"
+                  ? "text-[#1B6E99] border-b-2 border-[#1B6E99] font-black"
+                  : "text-[#7A97B0] hover:text-[#0B2238]"
               }`}
             >
               Volume & PRs
@@ -476,8 +476,8 @@ export default function HomeWorkoutApp() {
               onClick={() => setCurrentScreen("profile")}
               className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative cursor-pointer ${
                 currentScreen === "profile"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-500 hover:text-black"
+                  ? "text-[#1B6E99] border-b-2 border-[#1B6E99] font-black"
+                  : "text-[#7A97B0] hover:text-[#0B2238]"
               }`}
             >
               Profile
@@ -1552,19 +1552,19 @@ export default function HomeWorkoutApp() {
       </main>
 
       {/* ================================================================
-          BOTTOM TAB NAVIGATION (Matches Running Section)
+          BOTTOM TAB NAVIGATION (Workout Theme Palette)
           ================================================================ */}
       {currentScreen !== "player" && (
-        <nav className="fixed bottom-0 left-0 w-full z-[100] bg-[#f8f1e3]/95 backdrop-blur-2xl rounded-t-2xl shadow-[0px_-10px_30px_rgba(0,0,0,0.12)] flex justify-around items-center px-4 py-3 md:hidden border-t border-black/30">
+        <nav className="fixed bottom-0 left-0 w-full z-[100] bg-white/95 backdrop-blur-2xl rounded-t-2xl shadow-[0px_-10px_30px_rgba(27,110,153,0.12)] flex justify-around items-center px-4 py-3 md:hidden border-t border-[#D7EBF7]">
           <button
             onClick={() => setCurrentScreen("home")}
             className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               currentScreen === "home"
-                ? "text-black font-black bg-[#f0e4cc]"
-                : "text-gray-400 hover:text-black"
+                ? "text-[#1B6E99] font-black bg-[#EAF3F9] border border-[#BCE1F5]"
+                : "text-[#7A97B0] hover:text-[#0B2238]"
             }`}
           >
-            <Activity className="w-5.5 h-5.5 text-black" />
+            <Activity className={`w-5.5 h-5.5 ${currentScreen === "home" ? "text-[#1B6E99]" : "text-[#7A97B0]"}`} />
             <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
               Discover
             </span>
@@ -1574,11 +1574,11 @@ export default function HomeWorkoutApp() {
             onClick={() => setCurrentScreen("playlist")}
             className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               currentScreen === "playlist"
-                ? "text-black font-black bg-[#f0e4cc]"
-                : "text-gray-400 hover:text-black"
+                ? "text-[#1B6E99] font-black bg-[#EAF3F9] border border-[#BCE1F5]"
+                : "text-[#7A97B0] hover:text-[#0B2238]"
             }`}
           >
-            <Dumbbell className="w-5.5 h-5.5 text-black" />
+            <Dumbbell className={`w-5.5 h-5.5 ${currentScreen === "playlist" ? "text-[#1B6E99]" : "text-[#7A97B0]"}`} />
             <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
               Workouts
             </span>
@@ -1588,11 +1588,11 @@ export default function HomeWorkoutApp() {
             onClick={() => setCurrentScreen("progress")}
             className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               currentScreen === "progress"
-                ? "text-black font-black bg-[#f0e4cc]"
-                : "text-gray-400 hover:text-black"
+                ? "text-[#1B6E99] font-black bg-[#EAF3F9] border border-[#BCE1F5]"
+                : "text-[#7A97B0] hover:text-[#0B2238]"
             }`}
           >
-            <TrendingUp className="w-5.5 h-5.5 text-black" />
+            <TrendingUp className={`w-5.5 h-5.5 ${currentScreen === "progress" ? "text-[#1B6E99]" : "text-[#7A97B0]"}`} />
             <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
               Volume & PRs
             </span>
@@ -1602,11 +1602,11 @@ export default function HomeWorkoutApp() {
             onClick={() => setCurrentScreen("profile")}
             className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               currentScreen === "profile"
-                ? "text-black font-black bg-[#f0e4cc]"
-                : "text-gray-400 hover:text-black"
+                ? "text-[#1B6E99] font-black bg-[#EAF3F9] border border-[#BCE1F5]"
+                : "text-[#7A97B0] hover:text-[#0B2238]"
             }`}
           >
-            <User className="w-5.5 h-5.5 text-black" />
+            <User className={`w-5.5 h-5.5 ${currentScreen === "profile" ? "text-[#1B6E99]" : "text-[#7A97B0]"}`} />
             <span className="font-headline text-[9px] uppercase tracking-wider font-extrabold mt-1">
               Profile
             </span>
