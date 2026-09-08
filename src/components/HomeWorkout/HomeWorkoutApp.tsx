@@ -547,54 +547,48 @@ export default function HomeWorkoutApp() {
               </div>
             </div>
 
-            {/* Popular Workouts List */}
-            <div className="hw-section-title-row mt-5">
-              <h3 className="hw-section-title">Popular Workouts</h3>
-              <span className="hw-see-all-link">{filteredRoutines.length} Available</span>
+            {/* Popular Workouts Section */}
+            <div className="flex items-center justify-between mt-6 mb-3.5">
+              <h3 className="font-headline text-2xl font-black text-[#0B2238] tracking-tight">Popular Workouts</h3>
+              <span className="text-sm font-semibold text-[#7A97B0]">{filteredRoutines.length} Available</span>
             </div>
 
-            <div className="hw-workout-cards-list">
-              {filteredRoutines.map((routine) => (
+            {/* Top Cards: Horizontal full-width cards */}
+            <div className="space-y-3">
+              {filteredRoutines.slice(0, 2).map((routine) => (
                 <div
                   key={routine.id}
-                  className="hw-workout-card-horiz"
+                  className="bg-white border border-[#E2E8F0] rounded-3xl p-3.5 shadow-sm flex items-center gap-3.5 hover:shadow-md transition-all cursor-pointer group"
                   onClick={() => openRoutine(routine)}
                 >
-                  <div className="hw-workout-card-thumb">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 bg-[#EAF3F9]">
                     <img
                       src={routine.coverImage}
                       alt={routine.title}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                     />
-                    <span className="hw-card-duration-badge">{routine.durationMin} min</span>
-                    <button
-                      className="hw-bookmark-btn"
-                      onClick={(e) => toggleBookmark(routine.id, e)}
-                    >
-                      <Bookmark
-                        className={`w-3.5 h-3.5 ${
-                          bookmarkedRoutineIds.includes(routine.id)
-                            ? "fill-[#FFB800] text-[#FFB800]"
-                            : "text-[#0B2238]"
-                        }`}
-                      />
-                    </button>
                   </div>
-                  <div className="hw-workout-card-body">
-                    <div className={`hw-card-level-badge level-${routine.level.toLowerCase()}`}>
-                      {routine.levelName || `${routine.level} • Program`}
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <h4 className="font-extrabold text-base sm:text-lg text-[#0B2238] tracking-tight leading-tight truncate">
+                      {routine.title}
+                    </h4>
+                    <p className="text-xs font-semibold text-[#7A97B0] mt-0.5">
+                      {routine.levelName || `${routine.level} • Weeks 1-4`}
+                    </p>
+                    <div className="text-xs font-black uppercase tracking-wider text-[#0B2238] mt-1">
+                      {routine.durationMin} MIN
                     </div>
-                    <h4 className="hw-card-workout-title">{routine.title}</h4>
-                    <div className="hw-card-workout-meta">
-                      <span>
-                        <Clock className="w-3 h-3 inline mr-1" />
+                    <div className="flex items-center gap-3 text-xs font-semibold text-[#7A97B0] mt-1.5 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-[#7A97B0]" />
                         {routine.durationMin} Mins
                       </span>
-                      <span>
-                        <Flame className="w-3 h-3 inline mr-1 text-[#FF7043]" />
-                        {routine.estimatedCalories || 300} Kcal
+                      <span className="flex items-center gap-1">
+                        <Flame className="w-3.5 h-3.5 text-[#FF7043]" />
+                        {routine.estimatedCalories || 220} Kcal
                       </span>
-                      <span>
-                        <Dumbbell className="w-3 h-3 inline mr-1" />
+                      <span className="flex items-center gap-1">
+                        <Dumbbell className="w-3.5 h-3.5 text-[#7A97B0]" />
                         {routine.exercises.length} Exercises
                       </span>
                     </div>
@@ -602,6 +596,104 @@ export default function HomeWorkoutApp() {
                 </div>
               ))}
             </div>
+
+            {/* 2-Column Grid for Remaining Routines */}
+            {filteredRoutines.length > 2 && (
+              <div className="grid grid-cols-2 gap-3.5 items-start mt-3.5">
+                {/* Left Column */}
+                <div className="flex flex-col gap-3.5">
+                  {filteredRoutines.slice(2).filter((_, i) => i % 2 === 0).map((routine) => (
+                    <div
+                      key={routine.id}
+                      className="bg-white border border-[#E2E8F0] rounded-3xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                      onClick={() => openRoutine(routine)}
+                    >
+                      <div className="relative w-full rounded-2xl overflow-hidden bg-[#EAF3F9] aspect-[4/3]">
+                        <img
+                          src={routine.coverImage}
+                          alt={routine.title}
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute top-2.5 right-2.5 bg-[#EAF3F9]/90 backdrop-blur-sm text-[#0B2238] text-[10px] font-black uppercase px-2 py-0.5 rounded-lg shadow-sm">
+                          {routine.durationMin} MIN
+                        </span>
+                      </div>
+                      <div className="pt-2.5 flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-[#7A97B0]">
+                          {routine.levelName || `${routine.level} • Weeks 5-8+`}
+                        </span>
+                        <h4 className="font-extrabold text-sm text-[#0B2238] leading-tight line-clamp-2">
+                          {routine.title}
+                        </h4>
+                        <div className="flex items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-[#7A97B0] mt-1 flex-wrap">
+                          <span className="flex items-center gap-0.5">
+                            <Clock className="w-3 h-3 text-[#7A97B0]" />
+                            {routine.durationMin} Mins
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Flame className="w-3 h-3 text-[#FF7043]" />
+                            {routine.estimatedCalories || 300} Kcal
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Dumbbell className="w-3 h-3 text-[#7A97B0]" />
+                            {routine.exercises.length} Exercises
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Right Column */}
+                <div className="flex flex-col gap-3.5">
+                  {filteredRoutines.slice(2).filter((_, i) => i % 2 === 1).map((routine, idx) => (
+                    <div
+                      key={routine.id}
+                      className="bg-white border border-[#E2E8F0] rounded-3xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                      onClick={() => openRoutine(routine)}
+                    >
+                      <div className={`relative w-full rounded-2xl overflow-hidden bg-[#EAF3F9] ${idx === 0 ? "aspect-[4/3] sm:aspect-[1/1]" : "aspect-[4/3]"}`}>
+                        <img
+                          src={routine.coverImage}
+                          alt={routine.title}
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute top-2.5 right-2.5 bg-[#EAF3F9]/90 backdrop-blur-sm text-[#0B2238] text-[10px] font-black uppercase px-2 py-0.5 rounded-lg shadow-sm">
+                          {routine.durationMin} MIN
+                        </span>
+                      </div>
+                      <div className="pt-2.5 flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-[#7A97B0]">
+                          {routine.levelName || `${routine.level} • Weeks 5-8+`}
+                        </span>
+                        <h4 className="font-extrabold text-sm text-[#0B2238] leading-tight line-clamp-2">
+                          {routine.title}
+                        </h4>
+                        {routine.subtitle && (
+                          <p className="text-[10px] text-[#7A97B0] font-medium truncate">
+                            {routine.subtitle}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-[#7A97B0] mt-1 flex-wrap">
+                          <span className="flex items-center gap-0.5">
+                            <Clock className="w-3 h-3 text-[#7A97B0]" />
+                            {routine.durationMin} Mins
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Flame className="w-3 h-3 text-[#FF7043]" />
+                            {routine.estimatedCalories || 300} Kcal
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Dumbbell className="w-3 h-3 text-[#7A97B0]" />
+                            {routine.exercises.length} Exercises
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
