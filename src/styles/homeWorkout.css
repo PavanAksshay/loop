@@ -1787,3 +1787,99 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   BLOCK SEQUENCING, SUPERSETS & INTELLIGENT TRAINING UI STYLES
+   ========================================================================== */
+.hw-block-section {
+  margin-bottom: 1.25rem;
+}
+
+.hw-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: linear-gradient(90deg, #EAF3F9 0%, #F4F9FD 100%);
+  border-left: 3px solid #1B6E99;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+
+.hw-block-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0B2238;
+}
+
+.hw-block-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #1B6E99;
+  background: #FFFFFF;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid #BCE1F5;
+}
+
+.hw-superset-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #FF7043;
+  background: #FFF2E8;
+  border: 1px solid #FFD0B8;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hw-rpe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #1B6E99;
+  background: #EAF3F9;
+  border: 1px solid #BCE1F5;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.hw-mode-toggle-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #D7EBF7;
+  padding: 4px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+
+.hw-mode-toggle-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #7A97B0;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.hw-mode-toggle-btn.active {
+  background: #87CEEB;
+  color: #0A2239;
+  box-shadow: 0 2px 6px rgba(135, 206, 235, 0.4);
+}

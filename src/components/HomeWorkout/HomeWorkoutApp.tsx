@@ -25,6 +25,13 @@ import {
   Images,
   Upload,
   Footprints,
+  RotateCcw,
+  Pause,
+  Shuffle,
+  ChevronRight,
+  TrendingUp,
+  Target,
+  Sparkles,
 } from "lucide-react";
 import LoopLogo from "../LoopLogo";
 import {
@@ -32,7 +39,20 @@ import {
   WorkoutRoutine,
   Exercise,
   getNextWorkoutRecommendation,
+  ALL_PROGRAM_LEVELS,
+  PROGRAM_OVERVIEW,
 } from "../../data/homeWorkoutData";
+import {
+  EXERCISE_LIBRARY,
+  getExerciseDef,
+  EquipmentType,
+} from "../../data/exerciseLibrary";
+import {
+  scaleWorkoutToDurationMode,
+  substituteExerciseForEquipment,
+  calculateWeeklyMuscleDistribution,
+  WorkoutGoal,
+} from "../../data/workoutEngine";
 import {
   WorkoutUserProfile,
   getStoredWorkoutProfile,
@@ -59,25 +79,34 @@ export default function HomeWorkoutApp() {
   const [currentScreen, setCurrentScreen] = useState<"home" | "playlist" | "tracking" | "progress" | "profile">("home");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedLevel, setSelectedLevel] = useState<"All" | "Beginner" | "Intermediate" | "Advanced">("All");
+  const [selectedGoal, setSelectedGoal] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [bookmarkedRoutineIds, setBookmarkedRoutineIds] = useState<string[]>(["l1-upper", "l2-push"]);
 
-  // Selected Routine & Circuit / Round-based Active Workout Player
+  // Selected Routine & Scaled Settings
   const [selectedRoutine, setSelectedRoutine] = useState<WorkoutRoutine>(ALL_ROUTINES[0]);
+  const [durationMode, setDurationMode] = useState<"full" | "20min" | "15min">("full");
+  const [selectedVariant, setSelectedVariant] = useState<"A" | "B" | "C">("A");
+  const [showSubstituteModal, setShowSubstituteModal] = useState<boolean>(false);
+
+  // Active Workout Player State
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [totalRounds, setTotalRounds] = useState<number>(3);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number>(0);
   const [completedRounds, setCompletedRounds] = useState<number[]>([]);
 
-  // Full-Screen Rest Timer State
+  // Rest Timer State
   const [showRestModal, setShowRestModal] = useState<boolean>(false);
-  const [restSecondsRemaining, setRestSecondsRemaining] = useState<number>(45);
+  const [restSecondsRemaining, setRestSecondsRemaining] = useState<number>(60);
+  const [isRestPaused, setIsRestPaused] = useState<boolean>(false);
+  const [restReasonBadge, setRestReasonBadge] = useState<string>("Strength Recovery");
   const [nextStepInfo, setNextStepInfo] = useState<{
     exerciseIdx: number;
     round: number;
     isFinish: boolean;
   }>({ exerciseIdx: 0, round: 1, isFinish: false });
 
+  // Completion State
   const [showCongratsModal, setShowCongratsModal] = useState<boolean>(false);
   const [completedWorkoutStats, setCompletedWorkoutStats] = useState<{ time: string; setsCount: number; score: number }>({
     time: "00:00",
@@ -121,7 +150,7 @@ export default function HomeWorkoutApp() {
   // Rest Timer Interval
   useEffect(() => {
     let restInterval: NodeJS.Timeout | null = null;
-    if (showRestModal) {
+    if (showRestModal && !isRestPaused) {
       restInterval = setInterval(() => {
         setRestSecondsRemaining((prev) => {
           if (prev <= 1) {
@@ -136,7 +165,7 @@ export default function HomeWorkoutApp() {
     return () => {
       if (restInterval) clearInterval(restInterval);
     };
-  }, [showRestModal, nextStepInfo]);
+  }, [showRestModal, isRestPaused, nextStepInfo]);
 
   // Clean up audio on unmount
   useEffect(() => {
@@ -145,15 +174,37 @@ export default function HomeWorkoutApp() {
     };
   }, []);
 
+  // Compute active displayed routine based on duration mode (Full / 20-min / 15-min)
+  const activeDisplayedRoutine: WorkoutRoutine = React.useMemo(() => {
+    if (durationMode === "full") return selectedRoutine;
+    const targetMins = durationMode === "20min" ? 20 : 15;
+    // Adapt to IntelligentWorkoutRoutine format for scaling
+    const routineForScaling: any = {
+      ...selectedRoutine,
+      blocks: [],
+      variants: [],
+      volumeSummary: { totalSets: selectedRoutine.exercises.reduce((acc, e) => acc + e.sets, 0), primaryMuscleSets: {} },
+    };
+    const scaled = scaleWorkoutToDurationMode(routineForScaling, targetMins);
+    return {
+      ...selectedRoutine,
+      durationMin: scaled.durationMin,
+      estimatedCalories: scaled.estimatedCalories,
+      exercises: scaled.exercises,
+    };
+  }, [selectedRoutine, durationMode]);
+
   // Navigation handlers
   const openRoutine = (routine: WorkoutRoutine) => {
     setSelectedRoutine(routine);
+    setDurationMode("full");
+    setSelectedVariant("A");
     setCurrentScreen("playlist");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const startLiveWorkout = (routine?: WorkoutRoutine, startIdx = 0) => {
-    const r = routine || selectedRoutine;
+    const r = routine || activeDisplayedRoutine;
     setSelectedRoutine(r);
     setCurrentRound(1);
     setTotalRounds(r.exercises[0]?.sets || 3);
@@ -168,13 +219,14 @@ export default function HomeWorkoutApp() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const activeExercise: Exercise = selectedRoutine.exercises[currentExerciseIndex] || selectedRoutine.exercises[0];
+  const activeExercise: Exercise =
+    activeDisplayedRoutine.exercises[currentExerciseIndex] || activeDisplayedRoutine.exercises[0];
 
-  // Circuit Step Completion: Moves to next exercise in round or next round
+  // Complete Current Exercise Step with Intelligent Superset & Rest Detection
   const completeCurrentExerciseInCircuit = () => {
     workoutAudio.playCueBeep(700, 0.2);
 
-    const isLastExInRound = currentExerciseIndex >= selectedRoutine.exercises.length - 1;
+    const isLastExInRound = currentExerciseIndex >= activeDisplayedRoutine.exercises.length - 1;
     const isFinalRound = currentRound >= totalRounds;
 
     if (isLastExInRound && isFinalRound) {
@@ -195,17 +247,36 @@ export default function HomeWorkoutApp() {
         isFinish: false,
       });
 
-      triggerRest(activeExercise.restSeconds || 45);
+      // Context-aware intelligent rest calculation:
+      // If current is superset child A1, transition rest is quick (15s)
+      if (activeExercise.supersetPairId === "A1" || activeExercise.supersetPairId === "B1") {
+        setRestReasonBadge("Superset Transition");
+        triggerRest(15);
+      } else if (activeExercise.category.includes("Strength") || activeExercise.category.includes("Heavy")) {
+        setRestReasonBadge("Heavy Strength Recovery");
+        triggerRest(activeExercise.restSeconds || 90);
+      } else if (activeExercise.supersetPairId === "A2" || activeExercise.supersetPairId === "B2") {
+        setRestReasonBadge("Antagonist Pair Recovery");
+        triggerRest(activeExercise.restSeconds || 60);
+      } else if (activeExercise.slotNumber === 10 || activeExercise.intensity === "Maximum Burn") {
+        setRestReasonBadge("Metabolic Work:Rest Interval");
+        triggerRest(activeExercise.restSeconds || 30);
+      } else {
+        setRestReasonBadge("Accessory Recovery");
+        triggerRest(activeExercise.restSeconds || 45);
+      }
     }
   };
 
-  const triggerRest = (secs = 45) => {
+  const triggerRest = (secs = 60) => {
     setRestSecondsRemaining(secs);
+    setIsRestPaused(false);
     setShowRestModal(true);
   };
 
   const skipRest = () => {
     setShowRestModal(false);
+    setIsRestPaused(false);
     workoutAudio.unlockContext();
     workoutAudio.playCueBeep(520, 0.2);
 
@@ -226,9 +297,9 @@ export default function HomeWorkoutApp() {
     workoutAudio.playCelebrationChime();
     setShowRestModal(false);
 
-    const totalSetsCompleted = totalRounds * selectedRoutine.exercises.length;
+    const totalSetsCompleted = totalRounds * activeDisplayedRoutine.exercises.length;
     setCompletedWorkoutStats({
-      time: `${selectedRoutine.durationMin}:00`,
+      time: `${activeDisplayedRoutine.durationMin}:00`,
       setsCount: totalSetsCompleted,
       score: 100,
     });
@@ -236,7 +307,7 @@ export default function HomeWorkoutApp() {
     const updatedProfile: WorkoutUserProfile = {
       ...userProfile,
       workouts_completed: (userProfile.workouts_completed || 0) + 1,
-      total_workout_minutes: (userProfile.total_workout_minutes || 0) + selectedRoutine.durationMin,
+      total_workout_minutes: (userProfile.total_workout_minutes || 0) + activeDisplayedRoutine.durationMin,
       streak_days: (userProfile.streak_days || 0) + 1,
     };
     setUserProfile(updatedProfile);
@@ -258,7 +329,7 @@ export default function HomeWorkoutApp() {
       ...userProfile,
       full_name: formName,
       age: parseInt(formAge, 10) || userProfile.age,
-      gender: formGender,
+      gender: formGender as any,
       weight_kg: parseFloat(formWeight) || userProfile.weight_kg,
       height_cm: parseFloat(formHeight) || userProfile.height_cm,
       fitness_level: formLevel as "Beginner" | "Intermediate" | "Advanced",
@@ -291,23 +362,65 @@ export default function HomeWorkoutApp() {
     }
   };
 
-  // Filter routines by Level, Category, Search
+  // Filter routines by Level, Goal, Category, Search
   const filteredRoutines = ALL_ROUTINES.filter((r) => {
     const matchesLevel = selectedLevel === "All" || r.level === selectedLevel;
-    const matchesCat = selectedCategory === "All" || r.focus.toLowerCase().includes(selectedCategory.toLowerCase());
+    const matchesGoal = selectedGoal === "All" || r.goal === selectedGoal;
+    const matchesCat =
+      selectedCategory === "All" ||
+      r.category === selectedCategory ||
+      r.focus.toLowerCase().includes(selectedCategory.toLowerCase());
     const matchesSearch =
       r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.exercises.some((e) => e.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesLevel && matchesCat && matchesSearch;
+    return matchesLevel && matchesGoal && matchesCat && matchesSearch;
   });
 
-  const nextUpExercise = selectedRoutine.exercises[nextStepInfo.exerciseIdx] || selectedRoutine.exercises[0];
+  const nextUpExercise =
+    activeDisplayedRoutine.exercises[nextStepInfo.exerciseIdx] || activeDisplayedRoutine.exercises[0];
+
+  // Group the 10 exercises into 6 structured training blocks
+  const groupedBlocks = React.useMemo(() => {
+    const exs = activeDisplayedRoutine.exercises;
+    return [
+      {
+        title: "BLOCK 1 — PRIMARY STRENGTH COMPOUNDS",
+        badge: "Heavy Neural Drive",
+        exercises: exs.slice(0, 2),
+      },
+      {
+        title: "BLOCK 2 — SUPERSET A1 + A2",
+        badge: "Antagonist Pair • 60s Rest",
+        exercises: exs.slice(2, 4),
+      },
+      {
+        title: "BLOCK 3 — SUPERSET B1 + B2",
+        badge: "Hypertrophy Pair • 45s Rest",
+        exercises: exs.slice(4, 6),
+      },
+      {
+        title: "BLOCK 4 — ACCESSORIES & ISOLATION",
+        badge: "Muscle Specificity",
+        exercises: exs.slice(6, 8),
+      },
+      {
+        title: "BLOCK 5 — CORE & STABILITY",
+        badge: "Anti-Extension / Rotation",
+        exercises: exs.slice(8, 9),
+      },
+      {
+        title: "BLOCK 6 — METABOLIC FINISHER",
+        badge: "High-Output Conditioning",
+        exercises: exs.slice(9, 10),
+      },
+    ].filter((b) => b.exercises.length > 0);
+  }, [activeDisplayedRoutine]);
 
   return (
     <div className="hw-theme-root">
       {/* ================================================================
-          CLEAN APP HEADER
+          APP HEADER
           ================================================================ */}
       <header className="hw-showcase-nav">
         {/* Left: Return to Tracks & Brand Title */}
@@ -322,7 +435,9 @@ export default function HomeWorkoutApp() {
           </button>
           <div className="flex items-center gap-2">
             <LoopLogo size={24} glow />
-            <span className="font-logo text-2xl uppercase tracking-wider text-[#0B2238]" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}>Loop</span>
+            <span className="font-logo text-2xl uppercase tracking-wider text-[#0B2238]" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}>
+              Loop
+            </span>
           </div>
         </div>
 
@@ -339,11 +454,11 @@ export default function HomeWorkoutApp() {
       </header>
 
       {/* ================================================================
-          MAIN MOBILE-FIRST CONTENT CONTAINER
+          MAIN CONTAINER
           ================================================================ */}
       <main className="hw-app-container">
         {/* ==============================================================
-            SCREEN 1: HOME DASHBOARD (WORKOUT DISCOVERY)
+            SCREEN 1: HOME DASHBOARD (WORKOUT DISCOVERY & CATALOG)
             ============================================================== */}
         {currentScreen === "home" && (
           <section className="hw-screen">
@@ -371,7 +486,7 @@ export default function HomeWorkoutApp() {
                 </div>
                 <button
                   className="hw-icon-round-btn cursor-pointer"
-                  onClick={() => showToast("🔔 You have 2 workout reminders today!")}
+                  onClick={() => showToast("🔔 You have 2 workout reminders scheduled today!")}
                 >
                   <Bell className="w-3.5 h-3.5" />
                   <span className="hw-notif-badge"></span>
@@ -384,7 +499,7 @@ export default function HomeWorkoutApp() {
               <Search className="w-4 h-4 text-[#7A97B0] shrink-0" />
               <input
                 type="text"
-                placeholder="Search exercises, routines, coaches..."
+                placeholder="Search exercises, 10-slot plans, goals..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -394,7 +509,7 @@ export default function HomeWorkoutApp() {
                 </button>
               )}
               <button
-                onClick={() => showToast("Filters applied: Intensity & Equipment")}
+                onClick={() => showToast("Showing 24 intelligent training plans")}
                 className="text-[#486581] hover:text-[#1B6E99] shrink-0 cursor-pointer"
                 title="Filter Workouts"
               >
@@ -402,7 +517,7 @@ export default function HomeWorkoutApp() {
               </button>
             </div>
 
-            {/* Daily Activity Summary Card with Light Blue (#87CEEB) Progress Rings */}
+            {/* Daily Activity Summary Card */}
             <div className="hw-activity-summary-card">
               <div className="hw-card-left">
                 <div className="hw-card-tag">TODAY'S PROGRESS</div>
@@ -420,14 +535,13 @@ export default function HomeWorkoutApp() {
                   </div>
                   <div className="hw-metric-divider"></div>
                   <div className="hw-metric-item">
-                    <span className="hw-metric-val">3/4</span>
-                    <span className="hw-metric-label">Sets</span>
+                    <span className="hw-metric-val">10/10</span>
+                    <span className="hw-metric-label">Slots Hit</span>
                   </div>
                 </div>
               </div>
 
               <div className="hw-card-right">
-                {/* SVG Activity Circular Gauge in #87CEEB */}
                 <div className="hw-rings-wrapper">
                   <svg className="hw-progress-ring-svg" viewBox="0 0 100 100">
                     <circle className="hw-ring-bg" cx="50" cy="50" r="42" strokeWidth="8"></circle>
@@ -490,7 +604,7 @@ export default function HomeWorkoutApp() {
                         </span>
                         <span className="flex items-center gap-0.5">
                           <Dumbbell className="w-3 h-3 text-[#7A97B0]" />
-                          {nextRec.nextRoutine.exercises.length} Exercises
+                          10 Slots
                         </span>
                       </div>
                     </div>
@@ -513,6 +627,38 @@ export default function HomeWorkoutApp() {
               );
             })()}
 
+            {/* Goal Filter Chips */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-[#0B2238]">Training Goal</span>
+                <span className="text-[11px] font-semibold text-[#7A97B0]">{filteredRoutines.length} Plans</span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {[
+                  "All",
+                  "Strength",
+                  "Muscle Gain",
+                  "General Fitness",
+                  "Fat Loss",
+                  "Athletic Performance",
+                  "Mobility",
+                  "Conditioning",
+                ].map((goal) => (
+                  <button
+                    key={goal}
+                    onClick={() => setSelectedGoal(goal)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                      selectedGoal === goal
+                        ? "bg-[#1B6E99] text-white border-[#1B6E99] shadow-xs"
+                        : "bg-white text-[#486581] border-[#D7EBF7] hover:bg-[#EAF3F9]"
+                    }`}
+                  >
+                    {goal}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Categories Horizontal Tabs */}
             <div className="hw-section-title-row">
               <h3 className="hw-section-title">Category</h3>
@@ -527,8 +673,11 @@ export default function HomeWorkoutApp() {
               {[
                 { label: "All Workouts", icon: "⚡", cat: "All" },
                 { label: "Full Body", icon: "🏋️", cat: "Full Body" },
-                { label: "HIIT Blast", icon: "🔥", cat: "HIIT" },
                 { label: "Upper Body", icon: "💪", cat: "Upper Body" },
+                { label: "Lower Body", icon: "🦵", cat: "Lower Body" },
+                { label: "Chest Special", icon: "🛡️", cat: "Chest" },
+                { label: "Back & Lats", icon: "🦅", cat: "Back" },
+                { label: "HIIT & Cardio", icon: "🔥", cat: "HIIT" },
                 { label: "Core & Abs", icon: "🎯", cat: "Core" },
                 { label: "Mobility", icon: "🧘", cat: "Mobility" },
               ].map((item) => (
@@ -549,7 +698,7 @@ export default function HomeWorkoutApp() {
               onClick={() => openRoutine(filteredRoutines[0] || ALL_ROUTINES[0])}
             >
               <div className="hw-hero-bg-overlay"></div>
-              <div className="hw-hero-badge-pill">🔥 FEATURED TODAY</div>
+              <div className="hw-hero-badge-pill">🔥 FEATURED 10-SLOT PROGRAM</div>
               <div className="hw-hero-content">
                 <h3 className="hw-hero-title">
                   {(filteredRoutines[0] || ALL_ROUTINES[0]).title}
@@ -568,6 +717,9 @@ export default function HomeWorkoutApp() {
                   </div>
                   <div className="hw-meta-tag hw-level-tag">
                     {(filteredRoutines[0] || ALL_ROUTINES[0]).level}
+                  </div>
+                  <div className="hw-meta-tag bg-white/20">
+                    10 Slots
                   </div>
                 </div>
                 <div className="hw-hero-footer">
@@ -595,8 +747,10 @@ export default function HomeWorkoutApp() {
 
             {/* Popular Workouts Section */}
             <div className="flex items-center justify-between mt-6 mb-3.5">
-              <h3 className="font-headline text-2xl font-black text-[#0B2238] tracking-tight">Popular Workouts</h3>
-              <span className="text-sm font-semibold text-[#7A97B0]">{filteredRoutines.length} Available</span>
+              <h3 className="font-headline text-2xl font-black text-[#0B2238] tracking-tight">
+                Workout Catalog ({filteredRoutines.length})
+              </h3>
+              <span className="text-xs font-semibold text-[#7A97B0]">10 Slots Each</span>
             </div>
 
             {/* Top Cards: Horizontal full-width cards */}
@@ -619,23 +773,24 @@ export default function HomeWorkoutApp() {
                       {routine.title}
                     </h4>
                     <p className="text-xs font-semibold text-[#7A97B0] mt-0.5">
-                      {routine.levelName || `${routine.level} • Weeks 1-4`}
+                      {routine.levelName || `${routine.level} • 10 Slots`}
                     </p>
-                    <div className="text-xs font-black uppercase tracking-wider text-[#0B2238] mt-1">
-                      {routine.durationMin} MIN
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-black uppercase tracking-wider text-[#1B6E99]">
+                        {routine.durationMin} MIN
+                      </span>
+                      <span className="text-[10px] font-bold text-[#FF7043] bg-[#FFF2E8] px-2 py-0.5 rounded-md">
+                        {routine.goal || "General"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs font-semibold text-[#7A97B0] mt-1.5 flex-wrap">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-[#7A97B0]" />
-                        {routine.durationMin} Mins
-                      </span>
-                      <span className="flex items-center gap-1">
                         <Flame className="w-3.5 h-3.5 text-[#FF7043]" />
-                        {routine.estimatedCalories || 220} Kcal
+                        {routine.estimatedCalories || 300} Kcal
                       </span>
                       <span className="flex items-center gap-1">
                         <Dumbbell className="w-3.5 h-3.5 text-[#7A97B0]" />
-                        {routine.exercises.length} Exercises
+                        10 Exercises
                       </span>
                     </div>
                   </div>
@@ -666,51 +821,7 @@ export default function HomeWorkoutApp() {
                       </div>
                       <div className="pt-2.5 flex flex-col gap-0.5">
                         <span className="text-[10px] font-bold text-[#7A97B0]">
-                          {routine.levelName || `${routine.level} • Weeks 5-8+`}
-                        </span>
-                        <h4 className="font-extrabold text-sm text-[#0B2238] leading-tight line-clamp-2">
-                          {routine.title}
-                        </h4>
-                        <div className="flex items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-[#7A97B0] mt-1 flex-wrap">
-                          <span className="flex items-center gap-0.5">
-                            <Clock className="w-3 h-3 text-[#7A97B0]" />
-                            {routine.durationMin} Mins
-                          </span>
-                          <span className="flex items-center gap-0.5">
-                            <Flame className="w-3 h-3 text-[#FF7043]" />
-                            {routine.estimatedCalories || 300} Kcal
-                          </span>
-                          <span className="flex items-center gap-0.5">
-                            <Dumbbell className="w-3 h-3 text-[#7A97B0]" />
-                            {routine.exercises.length} Exercises
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Right Column */}
-                <div className="flex flex-col gap-3.5">
-                  {filteredRoutines.slice(2).filter((_, i) => i % 2 === 1).map((routine, idx) => (
-                    <div
-                      key={routine.id}
-                      className="bg-white border border-[#E2E8F0] rounded-3xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group"
-                      onClick={() => openRoutine(routine)}
-                    >
-                      <div className={`relative w-full rounded-2xl overflow-hidden bg-[#EAF3F9] ${idx === 0 ? "aspect-[4/3] sm:aspect-[1/1]" : "aspect-[4/3]"}`}>
-                        <img
-                          src={routine.coverImage}
-                          alt={routine.title}
-                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <span className="absolute top-2.5 right-2.5 bg-[#EAF3F9]/90 backdrop-blur-sm text-[#0B2238] text-[10px] font-black uppercase px-2 py-0.5 rounded-lg shadow-sm">
-                          {routine.durationMin} MIN
-                        </span>
-                      </div>
-                      <div className="pt-2.5 flex flex-col gap-0.5">
-                        <span className="text-[10px] font-bold text-[#7A97B0]">
-                          {routine.levelName || `${routine.level} • Weeks 5-8+`}
+                          {routine.levelName || `${routine.level}`}
                         </span>
                         <h4 className="font-extrabold text-sm text-[#0B2238] leading-tight line-clamp-2">
                           {routine.title}
@@ -722,16 +833,57 @@ export default function HomeWorkoutApp() {
                         )}
                         <div className="flex items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-[#7A97B0] mt-1 flex-wrap">
                           <span className="flex items-center gap-0.5">
-                            <Clock className="w-3 h-3 text-[#7A97B0]" />
-                            {routine.durationMin} Mins
+                            <Flame className="w-3 h-3 text-[#FF7043]" />
+                            {routine.estimatedCalories || 280} Kcal
                           </span>
+                          <span className="flex items-center gap-0.5">
+                            <Dumbbell className="w-3 h-3 text-[#7A97B0]" />
+                            10 Slots
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Right Column */}
+                <div className="flex flex-col gap-3.5">
+                  {filteredRoutines.slice(2).filter((_, i) => i % 2 === 1).map((routine) => (
+                    <div
+                      key={routine.id}
+                      className="bg-white border border-[#E2E8F0] rounded-3xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                      onClick={() => openRoutine(routine)}
+                    >
+                      <div className="relative w-full rounded-2xl overflow-hidden bg-[#EAF3F9] aspect-[4/3]">
+                        <img
+                          src={routine.coverImage}
+                          alt={routine.title}
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute top-2.5 right-2.5 bg-[#EAF3F9]/90 backdrop-blur-sm text-[#0B2238] text-[10px] font-black uppercase px-2 py-0.5 rounded-lg shadow-sm">
+                          {routine.durationMin} MIN
+                        </span>
+                      </div>
+                      <div className="pt-2.5 flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-[#7A97B0]">
+                          {routine.levelName || `${routine.level}`}
+                        </span>
+                        <h4 className="font-extrabold text-sm text-[#0B2238] leading-tight line-clamp-2">
+                          {routine.title}
+                        </h4>
+                        {routine.subtitle && (
+                          <p className="text-[10px] text-[#7A97B0] font-medium truncate">
+                            {routine.subtitle}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-[#7A97B0] mt-1 flex-wrap">
                           <span className="flex items-center gap-0.5">
                             <Flame className="w-3 h-3 text-[#FF7043]" />
                             {routine.estimatedCalories || 300} Kcal
                           </span>
                           <span className="flex items-center gap-0.5">
                             <Dumbbell className="w-3 h-3 text-[#7A97B0]" />
-                            {routine.exercises.length} Exercises
+                            10 Slots
                           </span>
                         </div>
                       </div>
@@ -757,13 +909,39 @@ export default function HomeWorkoutApp() {
                 <ChevronLeft className="w-4 h-4" />
                 <span>Workouts</span>
               </button>
+              <div className="flex items-center gap-2">
+                {/* Variant Selector */}
+                <div className="flex items-center gap-1 bg-white border border-[#D7EBF7] rounded-full p-0.5 shadow-2xs">
+                  {(["A", "B", "C"] as const).map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => {
+                        setSelectedVariant(v);
+                        showToast(`Activated Movement Variant ${v}`);
+                      }}
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black cursor-pointer transition-all ${
+                        selectedVariant === v
+                          ? "bg-[#1B6E99] text-white"
+                          : "text-[#7A97B0] hover:text-[#0B2238]"
+                      }`}
+                    >
+                      Var {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Title Area */}
-            <div className="space-y-1 mb-4">
-              <span className="text-xs font-bold text-[#486581] tracking-wide block">
-                {selectedRoutine.levelName || `${selectedRoutine.level} • Weeks 1-4`}
-              </span>
+            <div className="space-y-1 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#486581] tracking-wide block">
+                  {selectedRoutine.levelName || `${selectedRoutine.level} • 10 Slots`}
+                </span>
+                <span className="text-[10px] font-bold text-[#FF7043] bg-[#FFF2E8] px-2 py-0.5 rounded-full border border-[#FFD0B8]">
+                  {selectedRoutine.goal || "Hypertrophy"}
+                </span>
+              </div>
               <h1 className="font-headline text-2xl sm:text-3xl font-black text-[#0B2238] tracking-tight leading-tight">
                 {selectedRoutine.title}
               </h1>
@@ -774,9 +952,30 @@ export default function HomeWorkoutApp() {
               )}
             </div>
 
-            {/* Hero Container with 3 Stats Pill Cards overlaid on the physique visual */}
+            {/* Duration Mode Scaler Toggle */}
+            <div className="hw-mode-toggle-bar">
+              <button
+                className={`hw-mode-toggle-btn ${durationMode === "full" ? "active" : ""}`}
+                onClick={() => setDurationMode("full")}
+              >
+                Full 10-Slots ({activeDisplayedRoutine.durationMin}m)
+              </button>
+              <button
+                className={`hw-mode-toggle-btn ${durationMode === "20min" ? "active" : ""}`}
+                onClick={() => setDurationMode("20min")}
+              >
+                Express 20-min
+              </button>
+              <button
+                className={`hw-mode-toggle-btn ${durationMode === "15min" ? "active" : ""}`}
+                onClick={() => setDurationMode("15min")}
+              >
+                Express 15-min
+              </button>
+            </div>
+
+            {/* Hero Container with 3 Stats Pill Cards */}
             <div className="relative w-full rounded-3xl overflow-hidden mb-5 shadow-sm border border-[#D7EBF7] bg-[#EAF3F9]">
-              {/* Background Visual Banner */}
               <div className="relative w-full h-44 sm:h-52 overflow-hidden">
                 <img
                   src={selectedRoutine.coverImage}
@@ -786,24 +985,22 @@ export default function HomeWorkoutApp() {
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#EAF3F9]/30 to-[#EAF3F9]" />
               </div>
 
-              {/* 3 Metric Pills on Top */}
+              {/* 3 Metric Pills */}
               <div className="absolute top-3 left-3 right-3 flex items-center gap-2">
-                {/* Pill 1: Duration */}
                 <div className="flex-1 bg-white/90 backdrop-blur-md border border-[#D7EBF7] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 shadow-sm min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#EAF3F9] text-[#1B6E99] flex items-center justify-center shrink-0">
                     <Clock className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="font-extrabold text-xs text-[#0B2238] leading-tight truncate">
-                      {selectedRoutine.durationMin} Min
+                      {activeDisplayedRoutine.durationMin} Min
                     </div>
                     <div className="text-[10px] text-[#7A97B0] font-medium leading-tight truncate">
-                      Duration
+                      Dynamic Time
                     </div>
                   </div>
                 </div>
 
-                {/* Pill 2: Circuit */}
                 <div className="flex-1 bg-white/90 backdrop-blur-md border border-[#D7EBF7] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 shadow-sm min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#EAF3F9] text-[#1B6E99] flex items-center justify-center shrink-0">
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -813,66 +1010,96 @@ export default function HomeWorkoutApp() {
                       3 Rounds
                     </div>
                     <div className="text-[10px] text-[#7A97B0] font-medium leading-tight truncate">
-                      Circuit
+                      Circuit / Sets
                     </div>
                   </div>
                 </div>
 
-                {/* Pill 3: Focus Area */}
                 <div className="flex-1 bg-white/90 backdrop-blur-md border border-[#D7EBF7] rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 shadow-sm min-w-0">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FFF2E8] text-[#FF7043] flex items-center justify-center shrink-0">
                     <Flame className="w-3.5 h-3.5 fill-current" />
                   </div>
                   <div className="min-w-0">
                     <div className="font-extrabold text-xs text-[#0B2238] leading-tight truncate">
-                      {selectedRoutine.focus.split(" ")[0]}
+                      {activeDisplayedRoutine.estimatedCalories} Kcal
                     </div>
                     <div className="text-[10px] text-[#7A97B0] font-medium leading-tight truncate">
-                      Focus Area
+                      Calculated
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Exercise List Items - Clean Numbered Pill Cards */}
-            <div className="space-y-3 mb-6">
-              {selectedRoutine.exercises.map((ex, idx) => (
-                <div
-                  key={ex.id}
-                  onClick={() => startLiveWorkout(selectedRoutine, idx)}
-                  className="bg-[#EAF3F9] hover:bg-[#DDF0FC] border border-[#BCE1F5] rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all cursor-pointer shadow-sm active:scale-[0.99] group"
-                >
-                  {/* Left: Big Number 01, 02, etc. */}
-                  <div className="font-headline font-black text-3xl sm:text-4xl text-[#1B6E99] tracking-tighter w-14 sm:w-16 shrink-0 pr-3 border-r border-[#BCE1F5] flex items-center justify-center">
-                    {String(idx + 1).padStart(2, "0")}
+            {/* Structured Training Blocks & 10 Exercise Slots */}
+            <div className="space-y-4 mb-6">
+              {groupedBlocks.map((block, bIdx) => (
+                <div key={bIdx} className="hw-block-section">
+                  <div className="hw-block-header">
+                    <span className="hw-block-title">{block.title}</span>
+                    <span className="hw-block-badge">{block.badge}</span>
                   </div>
 
-                  {/* Middle: Exercise Name + Minimal Target Muscle subtext */}
-                  <div className="flex-1 min-w-0 pl-1">
-                    <h4 className="font-bold text-sm sm:text-base text-[#0B2238] leading-snug truncate">
-                      {ex.name}
-                    </h4>
-                    <p className="text-xs text-[#486581] font-medium mt-0.5 truncate">
-                      {ex.targetMuscles || ex.category}
-                    </p>
-                  </div>
+                  <div className="space-y-2.5">
+                    {block.exercises.map((ex) => (
+                      <div
+                        key={ex.id}
+                        onClick={() => startLiveWorkout(activeDisplayedRoutine, (ex.slotNumber || 1) - 1)}
+                        className="bg-[#EAF3F9] hover:bg-[#DDF0FC] border border-[#BCE1F5] rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 transition-all cursor-pointer shadow-sm active:scale-[0.99] group"
+                      >
+                        {/* Left: Slot Number 01 - 10 */}
+                        <div className="font-headline font-black text-2xl sm:text-3xl text-[#1B6E99] tracking-tighter w-12 sm:w-14 shrink-0 pr-2.5 border-r border-[#BCE1F5] flex items-center justify-center">
+                          {String(ex.slotNumber || 1).padStart(2, "0")}
+                        </div>
 
-                  {/* Right: Reps */}
-                  <div className="text-xs sm:text-sm font-bold text-[#0B2238] shrink-0 whitespace-nowrap pl-2">
-                    {ex.reps}
+                        {/* Middle: Exercise Name & Details */}
+                        <div className="flex-1 min-w-0 pl-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="font-bold text-sm sm:text-base text-[#0B2238] leading-snug truncate">
+                              {ex.name}
+                            </h4>
+                            {ex.supersetPairId && (
+                              <span className="hw-superset-badge">
+                                {ex.supersetPairId}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-[#486581] font-medium mt-0.5 truncate">
+                            {ex.targetMuscles}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="hw-rpe-badge">
+                              {ex.rpeTarget || "RPE 7-8"}
+                            </span>
+                            <span className="text-[10px] font-semibold text-[#7A97B0]">
+                              ⏱ {ex.restSeconds}s Rest
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Right: Sets & Reps */}
+                        <div className="text-right shrink-0 whitespace-nowrap pl-2">
+                          <div className="text-xs sm:text-sm font-bold text-[#0B2238]">
+                            {ex.reps}
+                          </div>
+                          <div className="text-[10px] font-semibold text-[#7A97B0]">
+                            {ex.sets} Sets
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Start Full Workout Button */}
+            {/* Start Complete Workout Button */}
             <div className="sticky bottom-20 z-10 pt-2 pb-1">
               <button
                 className="hw-btn-start-full"
-                onClick={() => startLiveWorkout(selectedRoutine, 0)}
+                onClick={() => startLiveWorkout(activeDisplayedRoutine, 0)}
               >
-                <span>Begin Complete Workout</span>
+                <span>Begin 10-Slot Workout ({activeDisplayedRoutine.durationMin}m)</span>
                 <Play className="w-4 h-4 fill-current" />
               </button>
             </div>
@@ -880,7 +1107,7 @@ export default function HomeWorkoutApp() {
         )}
 
         {/* ==============================================================
-            SCREEN 3: TRACKING / ACTIVE WORKOUT PLAYER (SUPER CLEAN & FOCUSED)
+            SCREEN 3: TRACKING / ACTIVE WORKOUT PLAYER
             ============================================================== */}
         {currentScreen === "tracking" && activeExercise && (
           <section className="hw-screen">
@@ -888,19 +1115,25 @@ export default function HomeWorkoutApp() {
             <div className="hw-tracking-top-bar">
               <button
                 className="hw-nav-icon-btn cursor-pointer"
-                onClick={() => {
-                  setCurrentScreen("playlist");
-                }}
+                onClick={() => setCurrentScreen("playlist")}
               >
                 <X className="w-4 h-4 text-[#0B2238]" />
               </button>
               <div className="hw-tracking-header-center">
-                <span className="hw-active-badge-pill">● LIVE CIRCUIT</span>
+                <span className="hw-active-badge-pill">
+                  {activeExercise.supersetPairId ? `● SUPERSET ${activeExercise.supersetPairId}` : "● LIVE SESSION"}
+                </span>
                 <h3 className="text-xs font-extrabold text-[#0B2238] truncate max-w-[180px]">
-                  {selectedRoutine.title}
+                  {activeDisplayedRoutine.title}
                 </h3>
               </div>
-              <div className="w-8" />
+              <button
+                className="hw-nav-icon-btn cursor-pointer text-[#1B6E99]"
+                title="Substitute Exercise"
+                onClick={() => setShowSubstituteModal(true)}
+              >
+                <Shuffle className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Round & Step Progress */}
@@ -910,8 +1143,8 @@ export default function HomeWorkoutApp() {
                   className="hw-progress-bar-fill"
                   style={{
                     width: `${Math.max(
-                      (((currentRound - 1) * selectedRoutine.exercises.length + currentExerciseIndex + 1) /
-                        (totalRounds * selectedRoutine.exercises.length)) *
+                      (((currentRound - 1) * activeDisplayedRoutine.exercises.length + currentExerciseIndex + 1) /
+                        (totalRounds * activeDisplayedRoutine.exercises.length)) *
                         100,
                       10
                     )}%`,
@@ -920,21 +1153,20 @@ export default function HomeWorkoutApp() {
               </div>
               <div className="hw-progress-step-text">
                 <span>
-                  <b>ROUND {currentRound} OF {totalRounds}</b> • Movement {currentExerciseIndex + 1} of {selectedRoutine.exercises.length}
+                  <b>ROUND {currentRound} OF {totalRounds}</b> • Slot {currentExerciseIndex + 1} of {activeDisplayedRoutine.exercises.length}
                 </span>
                 <span className="truncate max-w-[150px] text-right">
-                  {currentExerciseIndex < selectedRoutine.exercises.length - 1
-                    ? `Next: ${selectedRoutine.exercises[currentExerciseIndex + 1].name}`
+                  {currentExerciseIndex < activeDisplayedRoutine.exercises.length - 1
+                    ? `Next: ${activeDisplayedRoutine.exercises[currentExerciseIndex + 1].name}`
                     : currentRound < totalRounds
                     ? `Next: Round ${currentRound + 1}`
-                    : "Next: Complete Circuit!"}
+                    : "Complete Workout!"}
                 </span>
               </div>
             </div>
 
-            {/* Main Interactive Animated Exercise Form Visual Card */}
+            {/* Animated Kinematic Movement Visual Card */}
             <div className="hw-active-exercise-canvas-card">
-              {/* Pure animated kinematic movement visual with NO clutter text */}
               <ExerciseFormVisual
                 exerciseId={activeExercise.id}
                 exerciseName={activeExercise.name}
@@ -942,19 +1174,30 @@ export default function HomeWorkoutApp() {
 
               {/* Clean Exercise Title */}
               <div className="hw-active-exercise-info mt-3 text-center">
-                <h2 className="hw-active-title text-xl font-black">{activeExercise.name}</h2>
+                <span className="text-[10px] font-black uppercase text-[#1B6E99] tracking-wider">
+                  SLOT {String(currentExerciseIndex + 1).padStart(2, "0")} / 10 • {activeExercise.category}
+                </span>
+                <h2 className="hw-active-title text-xl font-black mt-0.5">{activeExercise.name}</h2>
               </div>
 
-              {/* Target Reps & Round Pills */}
+              {/* Target Reps, RPE & Tempo Row */}
               <div className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-2xl p-3.5 my-2">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-extrabold text-[#7A97B0] uppercase tracking-wider">
                     TARGET REPS
                   </span>
+                  <span className="text-[10px] font-extrabold text-[#1B6E99] bg-white px-2 py-0.5 rounded-full border border-[#BCE1F5]">
+                    {activeExercise.rpeTarget || "RPE 7-8 (2 RIR)"}
+                  </span>
                 </div>
 
-                <div className="text-3xl font-black font-mono text-[#0B2238] tracking-tight mb-3 text-center">
+                <div className="text-3xl font-black font-mono text-[#0B2238] tracking-tight mb-2 text-center">
                   {activeExercise.reps}
+                </div>
+
+                {/* Tempo cue */}
+                <div className="text-[11px] text-center font-bold text-[#486581] mb-2">
+                  Tempo: <span className="text-[#1B6E99]">{activeExercise.tempoNotes || "2-0-1-0"}</span>
                 </div>
 
                 {/* Circuit Rounds Tracker */}
@@ -966,7 +1209,7 @@ export default function HomeWorkoutApp() {
                     return (
                       <div
                         key={roundNum}
-                        className={`flex-1 py-2 px-1 rounded-xl text-center border font-bold text-xs transition-all ${
+                        className={`flex-1 py-1.5 px-1 rounded-xl text-center border font-bold text-xs transition-all ${
                           isCompleted
                             ? "bg-[#059669] text-white border-[#059669]"
                             : isCurrent
@@ -974,22 +1217,29 @@ export default function HomeWorkoutApp() {
                             : "bg-white text-[#7A97B0] border-[#D7EBF7]"
                         }`}
                       >
-                        {isCompleted ? "✓ Round " + roundNum : "Round " + roundNum}
+                        {isCompleted ? "✓ R" + roundNum : "Round " + roundNum}
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Single Primary Action Button */}
-              <div className="w-full mt-3">
+              {/* Form Tips Box */}
+              {activeExercise.tips && (
+                <div className="w-full p-2.5 bg-white border border-[#D7EBF7] rounded-xl text-left text-[11px] text-[#486581] font-medium leading-snug mb-2">
+                  💡 <span className="font-bold text-[#0B2238]">Coach Tip:</span> {activeExercise.tips}
+                </div>
+              )}
+
+              {/* Complete Set Action Button */}
+              <div className="w-full mt-2">
                 <button
                   onClick={completeCurrentExerciseInCircuit}
-                  className="w-full py-4 rounded-full bg-[#87CEEB] hover:bg-[#72C2E7] active:scale-[0.98] text-[#0A2239] font-headline text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-[#87CEEB]/35 transition-all cursor-pointer"
+                  className="w-full py-3.5 rounded-full bg-[#87CEEB] hover:bg-[#72C2E7] active:scale-[0.98] text-[#0A2239] font-headline text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-[#87CEEB]/35 transition-all cursor-pointer"
                 >
                   <Check className="w-5 h-5 stroke-[3]" />
                   <span>
-                    Complete {activeExercise.reps} (Round {currentRound}) → Rest ({activeExercise.restSeconds}s)
+                    Complete Set (R{currentRound}) → Next
                   </span>
                 </button>
               </div>
@@ -1001,13 +1251,13 @@ export default function HomeWorkoutApp() {
             SCREEN 4: PROGRESS & ANALYTICS DASHBOARD
             ============================================================== */}
         {currentScreen === "progress" && (
-          <section className="hw-screen">
+          <section className="hw-screen space-y-4">
             <div className="hw-screen-header">
               <div>
                 <span className="text-[10px] font-extrabold text-[#1B6E99] tracking-wider uppercase">
-                  PERFORMANCE
+                  TRAINING ANALYTICS
                 </span>
-                <h2 className="hw-screen-title">Workout Activity</h2>
+                <h2 className="hw-screen-title">Weekly Volume & PRs</h2>
               </div>
               <div className="flex items-center gap-1 bg-[#EAF3F9] p-1 rounded-full border border-[#D7EBF7]">
                 {(["Week", "Month", "Year"] as const).map((p) => (
@@ -1027,7 +1277,7 @@ export default function HomeWorkoutApp() {
             </div>
 
             {/* Overview Metric Cards */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="bg-white border border-[#D7EBF7] rounded-2xl p-3.5 shadow-sm">
                 <span className="text-[10px] font-bold text-[#7A97B0] uppercase">Sessions Done</span>
                 <div className="text-2xl font-black text-[#0B2238] mt-1 font-mono">
@@ -1035,55 +1285,88 @@ export default function HomeWorkoutApp() {
                 </div>
               </div>
               <div className="bg-white border border-[#D7EBF7] rounded-2xl p-3.5 shadow-sm">
-                <span className="text-[10px] font-bold text-[#7A97B0] uppercase">Time Trained</span>
+                <span className="text-[10px] font-bold text-[#7A97B0] uppercase">Active Volume</span>
                 <div className="text-2xl font-black text-[#0B2238] mt-1 font-mono">
                   {userProfile.total_workout_minutes || 215} <small className="text-xs font-bold text-[#1B6E99]">Mins</small>
                 </div>
               </div>
             </div>
 
-            {/* Weekly Consistency Bars */}
-            <div className="bg-white border border-[#D7EBF7] rounded-2xl p-4 shadow-sm mb-4">
+            {/* Weekly Muscle Volume Tracker (ACSM Target 10-18 Sets/Muscle/Week) */}
+            <div className="bg-white border border-[#D7EBF7] rounded-2xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="font-extrabold text-sm text-[#0B2238]">Weekly Workout Adherence</h4>
+                <div>
+                  <h4 className="font-extrabold text-sm text-[#0B2238]">Weekly Muscle Volume</h4>
+                  <span className="text-[10px] font-semibold text-[#7A97B0]">Target: 10–18 Sets / Muscle</span>
+                </div>
                 <span className="text-xs font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full">
-                  85% on Track
+                  Optimal Balance
                 </span>
               </div>
-              <div className="flex items-end justify-between gap-2 h-32 pt-4 px-2">
+
+              <div className="space-y-2 pt-1">
                 {[
-                  { day: "Mon", height: "80%", done: true },
-                  { day: "Tue", height: "40%", done: false },
-                  { day: "Wed", height: "90%", done: true },
-                  { day: "Thu", height: "0%", done: false },
-                  { day: "Fri", height: "100%", done: true },
-                  { day: "Sat", height: "70%", done: true },
-                  { day: "Sun", height: "0%", done: false },
-                ].map((bar, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                    <div className="w-full bg-[#EAF3F9] rounded-t-lg relative overflow-hidden flex items-end h-full">
+                  { muscle: "Chest", sets: 14, target: 16, pct: 85 },
+                  { muscle: "Back & Lats", sets: 16, target: 16, pct: 100 },
+                  { muscle: "Shoulders", sets: 12, target: 14, pct: 80 },
+                  { muscle: "Quads & Glutes", sets: 15, target: 16, pct: 92 },
+                  { muscle: "Hamstrings", sets: 10, target: 12, pct: 83 },
+                  { muscle: "Arms (Bi/Tri)", sets: 12, target: 14, pct: 85 },
+                  { muscle: "Core Stability", sets: 12, target: 12, pct: 100 },
+                ].map((item) => (
+                  <div key={item.muscle}>
+                    <div className="flex items-center justify-between text-xs font-bold mb-1">
+                      <span className="text-[#0B2238]">{item.muscle}</span>
+                      <span className="text-[#1B6E99]">{item.sets} Sets ({item.pct}%)</span>
+                    </div>
+                    <div className="w-full h-2 bg-[#EAF3F9] rounded-full overflow-hidden">
                       <div
-                        className={`w-full rounded-t-lg transition-all duration-500 ${
-                          bar.done ? "bg-[#87CEEB]" : "bg-[#D7EBF7]"
-                        }`}
-                        style={{ height: bar.height }}
+                        className="h-full bg-[#1B6E99] rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, item.pct)}%` }}
                       ></div>
                     </div>
-                    <span className="text-[10px] font-bold text-[#7A97B0]">{bar.day}</span>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Personal Records & Milestones */}
+            <div className="bg-white border border-[#D7EBF7] rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center gap-1.5 mb-3">
+                <TrophyIcon className="w-4 h-4 text-[#FF7043]" />
+                <h4 className="font-extrabold text-sm text-[#0B2238]">Personal Records (PRs)</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-2.5 bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl">
+                  <span className="text-[10px] font-bold text-[#7A97B0]">Standard Push-Ups</span>
+                  <div className="text-base font-black text-[#0B2238] font-mono mt-0.5">22 Reps</div>
+                  <span className="text-[9px] font-bold text-[#059669]">⭐ +4 Reps PR</span>
+                </div>
+                <div className="p-2.5 bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl">
+                  <span className="text-[10px] font-bold text-[#7A97B0]">Forearm Plank</span>
+                  <div className="text-base font-black text-[#0B2238] font-mono mt-0.5">90 Secs</div>
+                  <span className="text-[9px] font-bold text-[#059669]">⭐ +15s PR</span>
+                </div>
+                <div className="p-2.5 bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl">
+                  <span className="text-[10px] font-bold text-[#7A97B0]">Goblet Squat</span>
+                  <div className="text-base font-black text-[#0B2238] font-mono mt-0.5">16 kg × 12</div>
+                  <span className="text-[9px] font-bold text-[#059669]">⭐ +2 kg Load PR</span>
+                </div>
+                <div className="p-2.5 bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl">
+                  <span className="text-[10px] font-bold text-[#7A97B0]">Session Volume</span>
+                  <div className="text-base font-black text-[#0B2238] font-mono mt-0.5">30 Sets Hit</div>
+                  <span className="text-[9px] font-bold text-[#1B6E99]">100% Completion</span>
+                </div>
+              </div>
+            </div>
           </section>
         )}
 
         {/* ==============================================================
-            SCREEN 5: USER PROFILE (MIRRORED FROM RUNNING SECTION LAYOUT)
+            SCREEN 5: USER PROFILE
             ============================================================== */}
         {currentScreen === "profile" && (
           <section className="hw-screen space-y-5">
-            {/* Header */}
             <div className="flex justify-between items-center border-b border-[#D7EBF7] pb-3">
               <div className="flex items-center gap-2">
                 <User className="w-5 h-5 text-[#0B2238]" />
@@ -1093,7 +1376,6 @@ export default function HomeWorkoutApp() {
               </div>
             </div>
 
-            {/* Current Selected Avatar Preview Header */}
             <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-[#D7EBF7] shadow-sm">
               <div className="relative shrink-0 w-16 h-16 rounded-full overflow-hidden bg-[#EAF3F9] border-2 border-[#87CEEB] flex items-center justify-center">
                 {userProfile.avatar_url ? (
@@ -1152,364 +1434,232 @@ export default function HomeWorkoutApp() {
                 </button>
               </div>
 
-              {/* 20 Avatar Picker Grid */}
               {showAvatarPicker && (
-                <div className="space-y-2 animate-fadeIn bg-white p-3.5 rounded-2xl border border-[#D7EBF7]">
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[11px] text-[#7A97B0] uppercase font-black tracking-wider flex items-center gap-1.5">
-                      <User className="w-4 h-4 text-[#1B6E99]" />
-                      <span>Select Avatar</span>
-                    </label>
-                    <span className="text-[10px] text-[#7A97B0] font-bold">Nature Avatars</span>
-                  </div>
-
-                  <div className="grid grid-cols-5 gap-2.5 max-h-52 overflow-y-auto custom-scrollbar p-1">
-                    {DEFAULT_AVATARS.map((avatar) => {
-                      const isSelected = userProfile.avatar_url === avatar.url;
-                      return (
-                        <button
-                          key={avatar.id}
-                          type="button"
-                          onClick={() => handleAvatarSelect(avatar.url)}
-                          title={avatar.label}
-                          className={`relative rounded-full aspect-square overflow-hidden transition-all duration-200 cursor-pointer ${
-                            isSelected
-                              ? "ring-2 ring-[#87CEEB] ring-offset-2 ring-offset-white scale-105 shadow-md"
-                              : "hover:scale-105 opacity-80 hover:opacity-100"
-                          }`}
-                        >
-                          <img
-                            src={avatar.url}
-                            alt={avatar.label}
-                            className="w-full h-full object-cover"
-                          />
-                          {isSelected && (
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                              <Check className="w-4 h-4 text-white stroke-[3]" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div className="p-3 bg-white border border-[#D7EBF7] rounded-2xl grid grid-cols-4 gap-2">
+                  {DEFAULT_AVATARS.map((av) => (
+                    <button
+                      key={av.id}
+                      onClick={() => handleAvatarSelect(av.url)}
+                      className={`relative rounded-xl overflow-hidden aspect-square border-2 transition-transform hover:scale-105 cursor-pointer ${
+                        userProfile.avatar_url === av.url ? "border-[#1B6E99] shadow-sm" : "border-transparent"
+                      }`}
+                    >
+                      <img src={av.url} alt="Avatar" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Personal Details Section */}
-            <div className="space-y-3.5">
-              <div className="flex justify-between items-center">
-                <h4 className="text-[11px] text-[#7A97B0] uppercase font-black tracking-wider flex items-center gap-1.5">
-                  <User className="w-4 h-4 text-[#1B6E99]" />
-                  <span>Personal Details</span>
-                </h4>
-                <button
-                  type="button"
-                  onClick={() => setEditingProfile((v) => !v)}
-                  className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
-                    editingProfile
-                      ? "bg-[#EAF3F9] text-[#0B2238] border-[#D7EBF7]"
-                      : "bg-[#87CEEB] text-[#0A2239] border-[#479DC7] hover:bg-[#72C2E7]"
-                  }`}
-                >
-                  <Pencil className="w-3 h-3" />
-                  <span>{editingProfile ? "Cancel" : "Edit Profile"}</span>
-                </button>
+            {/* Profile Editing Form */}
+            <div className="bg-white p-4 rounded-2xl border border-[#D7EBF7] shadow-sm space-y-3">
+              <h4 className="font-headline text-sm font-extrabold uppercase text-[#0B2238]">Personal Stats</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-[#7A97B0] uppercase block mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#7A97B0] uppercase block mb-1">Fitness Level</label>
+                  <select
+                    value={formLevel}
+                    onChange={(e) => setFormLevel(e.target.value)}
+                    className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
+                  >
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#7A97B0] uppercase block mb-1">Weight (kg)</label>
+                  <input
+                    type="number"
+                    value={formWeight}
+                    onChange={(e) => setFormWeight(e.target.value)}
+                    className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#7A97B0] uppercase block mb-1">Height (cm)</label>
+                  <input
+                    type="number"
+                    value={formHeight}
+                    onChange={(e) => setFormHeight(e.target.value)}
+                    className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
+                  />
+                </div>
               </div>
 
-              {!editingProfile ? (
-                /* ---- Read-only View (Matching Running App) ---- */
-                <div className="space-y-2">
-                  {[
-                    { icon: <User className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Full Name", value: userProfile.full_name || "—" },
-                    { icon: <Calendar className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Age", value: `${userProfile.age || 26} yrs` },
-                    { icon: <ShieldCheck className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Gender", value: userProfile.gender || "—" },
-                    { icon: <Mail className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Email", value: userProfile.email || "athlete@loopfitness.io" },
-                    { icon: <Flame className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Weight", value: `${userProfile.weight_kg || 70} kg` },
-                    { icon: <Dumbbell className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Height", value: `${userProfile.height_cm || 175} cm` },
-                    { icon: <Award className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Program Level", value: userProfile.fitness_level },
-                    { icon: <RefreshCw className="w-3.5 h-3.5 text-[#1B6E99]" />, label: "Weekly Schedule", value: `${userProfile.target_days_per_week || 4} Days / Week` },
-                  ].map((row) => (
-                    <div
-                      key={row.label}
-                      className="flex items-center justify-between gap-3 bg-white border border-[#D7EBF7] rounded-xl px-3.5 py-2.5 shadow-sm"
-                    >
-                      <span className="flex items-center gap-2 text-[10px] uppercase font-black tracking-wider text-[#7A97B0]">
-                        {row.icon}
-                        {row.label}
-                      </span>
-                      <span className="text-xs font-bold text-[#0B2238] truncate text-right max-w-[55%]">
-                        {row.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                /* ---- Edit Form ---- */
-                <div className="space-y-3.5 bg-white p-4 rounded-2xl border border-[#D7EBF7] shadow-sm animate-fadeIn">
-                  <div>
-                    <label className="block text-[10px] text-[#7A97B0] uppercase font-black mb-1">Full Name</label>
-                    <input
-                      type="text"
-                      value={formName}
-                      onChange={(e) => setFormName(e.target.value)}
-                      className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <div>
-                      <label className="block text-[10px] text-[#7A97B0] uppercase font-black mb-1">Age</label>
-                      <input
-                        type="number"
-                        value={formAge}
-                        onChange={(e) => setFormAge(e.target.value)}
-                        className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#7A97B0] uppercase font-black mb-1">Gender</label>
-                      <select
-                        value={formGender}
-                        onChange={(e) => setFormGender(e.target.value)}
-                        className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Non-binary">Non-binary</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <div>
-                      <label className="block text-[10px] text-[#7A97B0] uppercase font-black mb-1">Weight (kg)</label>
-                      <input
-                        type="number"
-                        value={formWeight}
-                        onChange={(e) => setFormWeight(e.target.value)}
-                        className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#7A97B0] uppercase font-black mb-1">Height (cm)</label>
-                      <input
-                        type="number"
-                        value={formHeight}
-                        onChange={(e) => setFormHeight(e.target.value)}
-                        className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-[#7A97B0] uppercase font-black mb-1">Program Level</label>
-                    <select
-                      value={formLevel}
-                      onChange={(e) => setFormLevel(e.target.value)}
-                      className="w-full bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl px-3 py-2 text-xs font-bold text-[#0B2238]"
-                    >
-                      <option value="Beginner">Beginner (Level 1)</option>
-                      <option value="Intermediate">Intermediate (Level 2)</option>
-                      <option value="Advanced">Advanced (Level 3)</option>
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleSaveProfileChanges}
-                    className="w-full py-3 rounded-full bg-[#87CEEB] hover:bg-[#72C2E7] text-[#0A2239] text-xs font-black uppercase tracking-wider transition-all cursor-pointer mt-2"
-                  >
-                    Save Changes ✓
-                  </button>
-                </div>
-              )}
+              <button
+                onClick={handleSaveProfileChanges}
+                className="w-full mt-2 py-2.5 bg-[#1B6E99] hover:bg-[#155A7E] text-white rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Save Profile Changes
+              </button>
             </div>
           </section>
         )}
       </main>
 
       {/* ================================================================
-          BOTTOM FLOATING DOCK NAVIGATION
+          BOTTOM TAB NAVIGATION
           ================================================================ */}
-      <nav className="hw-bottom-dock-nav">
-        <div className="hw-dock-container">
-          {/* Tab 1: Home */}
-          <button
-            className={`hw-dock-tab ${currentScreen === "home" ? "active" : ""}`}
-            onClick={() => {
-              setCurrentScreen("home");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            <div className="hw-dock-icon">
-              <Flame className="w-4 h-4" />
-            </div>
-            <span className="hw-dock-label">Home</span>
-          </button>
-
-          {/* Tab 2: Workouts Schedule */}
-          <button
-            className={`hw-dock-tab ${currentScreen === "playlist" ? "active" : ""}`}
-            onClick={() => {
-              setCurrentScreen("playlist");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            <div className="hw-dock-icon">
-              <Play className="w-4 h-4" />
-            </div>
-            <span className="hw-dock-label">Workouts</span>
-          </button>
-
-          {/* Center Action: Start Live Workout */}
-          <button
-            className="hw-dock-center-action"
-            onClick={() => startLiveWorkout()}
-            title="Start Workout"
-          >
-            <div className="hw-center-fab">
-              <Play className="w-5 h-5 fill-current ml-0.5" />
-            </div>
-          </button>
-
-          {/* Tab 4: Progress */}
-          <button
-            className={`hw-dock-tab ${currentScreen === "progress" ? "active" : ""}`}
-            onClick={() => {
-              setCurrentScreen("progress");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            <div className="hw-dock-icon">
-              <Activity className="w-4 h-4" />
-            </div>
-            <span className="hw-dock-label">Progress</span>
-          </button>
-
-          {/* Tab 5: Profile */}
-          <button
-            className={`hw-dock-tab ${currentScreen === "profile" ? "active" : ""}`}
-            onClick={() => {
-              setCurrentScreen("profile");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            <div className="hw-dock-icon">
-              <User className="w-4 h-4" />
-            </div>
-            <span className="hw-dock-label">Profile</span>
-          </button>
-        </div>
+      <nav className="hw-bottom-nav">
+        <button
+          className={`hw-nav-tab ${currentScreen === "home" ? "active" : ""}`}
+          onClick={() => setCurrentScreen("home")}
+        >
+          <Activity className="w-4 h-4" />
+          <span>Discover</span>
+        </button>
+        <button
+          className={`hw-nav-tab ${currentScreen === "playlist" ? "active" : ""}`}
+          onClick={() => setCurrentScreen("playlist")}
+        >
+          <Dumbbell className="w-4 h-4" />
+          <span>Workouts</span>
+        </button>
+        <button
+          className={`hw-nav-tab ${currentScreen === "progress" ? "active" : ""}`}
+          onClick={() => setCurrentScreen("progress")}
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span>Volume & PRs</span>
+        </button>
+        <button
+          className={`hw-nav-tab ${currentScreen === "profile" ? "active" : ""}`}
+          onClick={() => setCurrentScreen("profile")}
+        >
+          <User className="w-4 h-4" />
+          <span>Profile</span>
+        </button>
       </nav>
 
       {/* ================================================================
-          USER ONBOARDING MODAL
-          ================================================================ */}
-      {showOnboardingModal && (
-        <WorkoutOnboardingModal
-          initialProfile={userProfile}
-          onComplete={(updated) => {
-            setUserProfile(updated);
-            setShowOnboardingModal(false);
-            showToast("Workout profile updated! 🏋️");
-          }}
-          onSkip={() => setShowOnboardingModal(false)}
-        />
-      )}
-
-      {/* ================================================================
-          FULL-SCREEN IMMERSIVE REST TIMER VIEW (CLEAN & MINIMAL)
+          INTELLIGENT REST TIMER MODAL
           ================================================================ */}
       {showRestModal && (
-        <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#07192A] via-[#0B253D] to-[#051423] text-white flex flex-col justify-between p-6 sm:p-8 animate-fadeIn select-none overflow-y-auto">
-          {/* Top Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <LoopLogo size={24} glow />
-              <span className="font-logo text-2xl uppercase tracking-wider text-[#87CEEB]" style={{ fontFamily: "'Bebas Neue', Impact, sans-serif" }}>Loop Rest</span>
+        <div className="hw-modal-overlay">
+          <div className="hw-modal-card max-w-xs w-full mx-4 text-center">
+            <span className="inline-block bg-[#EAF3F9] text-[#1B6E99] text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full border border-[#BCE1F5] mb-2">
+              {restReasonBadge}
+            </span>
+
+            <div className="text-5xl font-black font-mono text-[#0B2238] tracking-tight my-2">
+              {String(Math.floor(restSecondsRemaining / 60)).padStart(2, "0")}:
+              {String(restSecondsRemaining % 60).padStart(2, "0")}
             </div>
+
+            {/* Next Up Slot info */}
+            <div className="p-2.5 bg-[#F4F9FD] border border-[#D7EBF7] rounded-xl text-xs text-left mb-3">
+              <span className="text-[10px] font-bold text-[#7A97B0] uppercase block">Up Next:</span>
+              <span className="font-extrabold text-[#0B2238] block truncate">
+                Slot {nextStepInfo.exerciseIdx + 1}: {nextUpExercise.name}
+              </span>
+              <span className="text-[10px] text-[#486581]">{nextUpExercise.reps} • {nextUpExercise.rpeTarget || "RPE 7-8"}</span>
+            </div>
+
+            {/* Rest Controls */}
+            <div className="flex items-center gap-2 mb-3">
+              <button
+                onClick={() => addRestTime(15)}
+                className="flex-1 py-1.5 bg-white border border-[#D7EBF7] rounded-lg text-xs font-bold text-[#0B2238] hover:bg-[#EAF3F9] cursor-pointer"
+              >
+                +15s
+              </button>
+              <button
+                onClick={() => addRestTime(30)}
+                className="flex-1 py-1.5 bg-white border border-[#D7EBF7] rounded-lg text-xs font-bold text-[#0B2238] hover:bg-[#EAF3F9] cursor-pointer"
+              >
+                +30s
+              </button>
+              <button
+                onClick={() => setIsRestPaused((p) => !p)}
+                className="p-1.5 bg-white border border-[#D7EBF7] rounded-lg text-xs font-bold text-[#0B2238] hover:bg-[#EAF3F9] cursor-pointer"
+                title={isRestPaused ? "Resume" : "Pause"}
+              >
+                {isRestPaused ? <Play className="w-3.5 h-3.5 fill-current" /> : <Pause className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
             <button
               onClick={skipRest}
-              className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-bold text-[#87CEEB] border border-[#87CEEB]/40 flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="w-full py-2.5 rounded-full bg-[#87CEEB] hover:bg-[#72C2E7] text-[#0A2239] font-headline text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer"
             >
-              <span>Skip Rest</span>
-              <SkipForward className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Center: Big Animated Circular Rest Clock */}
-          <div className="flex flex-col items-center justify-center my-auto py-6">
-            <div className="relative w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center mb-4">
-              <div className="absolute inset-0 rounded-full bg-[#87CEEB]/10 animate-ping opacity-25" />
-              <div className="absolute inset-2 rounded-full border-4 border-[#87CEEB]/30" />
-              <div
-                className="absolute inset-0 rounded-full border-4 border-[#38BDF8] border-t-transparent animate-spin"
-                style={{ animationDuration: "8s" }}
-              />
-
-              <div className="flex flex-col items-center justify-center z-10">
-                <span className="text-6xl sm:text-7xl font-black font-mono text-[#87CEEB] tracking-tight drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]">
-                  {restSecondsRemaining}
-                </span>
-                <span className="text-xs font-extrabold uppercase tracking-widest text-[#94A3B8] mt-1">Seconds</span>
-              </div>
-            </div>
-
-            <p className="text-sm font-bold text-[#E2E8F0] tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-pulse" />
-              Breathe deeply & hydrate. Next exercise up!
-            </p>
-
-            <button
-              onClick={() => addRestTime(15)}
-              className="px-4 py-2 rounded-full bg-white/10 hover:bg-[#87CEEB]/20 border border-[#87CEEB]/50 text-xs font-bold text-[#87CEEB] transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <span>+15s Rest Time</span>
-            </button>
-          </div>
-
-          {/* Up Next Preview Card with Kinematic SVG Animation */}
-          {nextUpExercise && (
-            <div className="w-full max-w-md mx-auto bg-[#0F2942]/90 border border-[#87CEEB]/40 rounded-2xl p-4 shadow-xl mb-4 backdrop-blur-md">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#38BDF8]">
-                  UP NEXT
-                </span>
-                <span className="text-xs font-bold text-[#87CEEB] bg-[#87CEEB]/15 px-2.5 py-0.5 rounded-full border border-[#87CEEB]/40">
-                  Round {nextStepInfo.round} of {totalRounds}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#081B2C] border border-[#87CEEB]/30 shrink-0 flex items-center justify-center p-1">
-                  <ExerciseFormVisual
-                    exerciseId={nextUpExercise.id}
-                    exerciseName={nextUpExercise.name}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-extrabold text-sm text-white truncate">{nextUpExercise.name}</h4>
-                  <p className="text-xs font-black text-[#38BDF8] font-mono mt-0.5">Target: {nextUpExercise.reps}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Bottom Start Action Button */}
-          <div className="w-full max-w-md mx-auto">
-            <button
-              onClick={skipRest}
-              className="w-full py-4 rounded-full bg-[#87CEEB] hover:bg-[#72C2E7] active:scale-[0.98] text-[#081827] font-headline text-base font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(135,206,235,0.4)] transition-all cursor-pointer"
-            >
-              <span>Start Next Movement Now</span>
-              <Play className="w-5 h-5 fill-current" />
+              <span>Ready — Start Next Slot</span>
+              <SkipForward className="w-3.5 h-3.5 fill-current" />
             </button>
           </div>
         </div>
       )}
 
       {/* ================================================================
-          SESSION COMPLETE CELEBRATION MODAL WITH "WHAT TO DO NEXT" GUIDANCE
+          EXERCISE SUBSTITUTION MODAL
+          ================================================================ */}
+      {showSubstituteModal && (
+        <div className="hw-modal-overlay">
+          <div className="hw-modal-card max-w-sm w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-headline text-sm font-black text-[#0B2238] uppercase">
+                Substitute Exercise
+              </h3>
+              <button onClick={() => setShowSubstituteModal(false)} className="text-[#7A97B0] hover:text-[#0B2238]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[#486581] mb-3">
+              Choose an alternative movement matching your available equipment:
+            </p>
+
+            <div className="space-y-2">
+              {Object.values(EXERCISE_LIBRARY)
+                .filter((def) => def.movementPattern === (getExerciseDef(activeExercise.id).movementPattern || "horizontal_push"))
+                .slice(0, 5)
+                .map((def) => (
+                  <div
+                    key={def.id}
+                    onClick={() => {
+                      const updatedExercises = [...activeDisplayedRoutine.exercises];
+                      updatedExercises[currentExerciseIndex] = {
+                        ...updatedExercises[currentExerciseIndex],
+                        id: def.id,
+                        name: def.name,
+                        category: def.category,
+                        targetMuscles: def.targetMuscles,
+                        tips: def.tips,
+                        image: def.image,
+                      };
+                      setSelectedRoutine({
+                        ...selectedRoutine,
+                        exercises: updatedExercises,
+                      });
+                      setShowSubstituteModal(false);
+                      showToast(`Substituted to ${def.name}! ✓`);
+                    }}
+                    className="p-2.5 bg-white border border-[#D7EBF7] hover:border-[#1B6E99] rounded-xl flex items-center justify-between cursor-pointer transition-all"
+                  >
+                    <div>
+                      <h5 className="font-bold text-xs text-[#0B2238]">{def.name}</h5>
+                      <span className="text-[10px] text-[#7A97B0]">{def.equipment.join(", ")}</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#1B6E99] bg-[#EAF3F9] px-2 py-0.5 rounded-full">
+                      Swap
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================
+          SESSION COMPLETE CELEBRATION MODAL
           ================================================================ */}
       {showCongratsModal && (() => {
         const rec = getNextWorkoutRecommendation(selectedRoutine, userProfile.workouts_completed);
@@ -1519,7 +1669,7 @@ export default function HomeWorkoutApp() {
               <div className="hw-congrats-trophy">🏆</div>
               <h3 className="hw-modal-title">Workout Completed!</h3>
               <p className="hw-modal-sub">
-                Crushed it! You completed all <b>{totalRounds} Rounds</b> for <b>{selectedRoutine.title}</b> with clean form.
+                Crushed it! You completed all <b>{totalRounds} Rounds</b> for <b>{activeDisplayedRoutine.title}</b> with clean form.
               </p>
 
               {/* Stats Summary */}
@@ -1549,7 +1699,6 @@ export default function HomeWorkoutApp() {
                   </span>
                 </div>
 
-                {/* Next Routine Preview Item */}
                 <div
                   className="bg-white border border-[#D7EBF7] rounded-xl p-2.5 flex items-center gap-3 shadow-xs hover:border-[#1B6E99] transition-all cursor-pointer group"
                   onClick={() => {
@@ -1580,18 +1729,16 @@ export default function HomeWorkoutApp() {
                       </span>
                       <span className="flex items-center gap-0.5">
                         <Dumbbell className="w-2.5 h-2.5 text-[#7A97B0]" />
-                        {rec.nextRoutine.exercises.length} Exercises
+                        10 Slots
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Coach Rest & Activity Advice */}
                 <div className="mt-2.5 p-2 bg-white/80 rounded-lg border border-[#D7EBF7] text-[11px] text-[#0B2238] font-medium leading-snug">
                   {rec.restDayAdvice}
                 </div>
 
-                {/* Level Up Progress Meter */}
                 <div className="mt-2.5 pt-2 border-t border-[#D7EBF7]/80">
                   <div className="flex items-center justify-between text-[10px] font-bold text-[#486581] mb-1">
                     <span>{rec.currentLevelTitle} Progression</span>
@@ -1637,6 +1784,19 @@ export default function HomeWorkoutApp() {
         );
       })()}
 
+      {/* Onboarding Modal */}
+      {showOnboardingModal && (
+        <WorkoutOnboardingModal
+          initialProfile={userProfile}
+          onSkip={() => setShowOnboardingModal(false)}
+          onComplete={(updated) => {
+            setUserProfile(updated);
+            setShowOnboardingModal(false);
+            showToast("Welcome to Loop Intelligent Training! 🚀");
+          }}
+        />
+      )}
+
       {/* Toast Alert */}
       {toastMessage && (
         <div className="hw-toast-container">
@@ -1644,5 +1804,28 @@ export default function HomeWorkoutApp() {
         </div>
       )}
     </div>
+  );
+}
+
+function TrophyIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+    </svg>
   );
 }
