@@ -508,6 +508,38 @@ export interface FollowConnection {
   created_at: string;
 }
 
+export interface FollowSuggestion {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  mutual_count: number;
+  mutual_sample_usernames: string[];
+}
+
+export interface FollowAnalytics {
+  followers_count: number;
+  following_count: number;
+  mutuals_count: number;
+  pending_count: number;
+  growth_week: number;
+  growth_month: number;
+  history: Array<{
+    date: string;
+    followers: number;
+  }>;
+}
+
+export interface FollowRealtimePayload {
+  eventType: "INSERT" | "UPDATE" | "DELETE";
+  isIncomingRequest?: boolean;
+  isAccepted?: boolean;
+  isDeclined?: boolean;
+  isUnfollowed?: boolean;
+  otherUserId?: string;
+}
+
 /** Search people by @username or display name. Needs 2+ characters. */
 export async function searchUsers(
   query: string,
@@ -562,6 +594,22 @@ export async function respondToFollowRequest(
   if (error) throw error;
 }
 
+/**
+ * Bulk accept or decline incoming follow requests atomically.
+ */
+export async function bulkRespondFollowRequests(
+  followIds: string[],
+  accept: boolean
+): Promise<number> {
+  if (followIds.length === 0) return 0;
+  const { data, error } = await supabase.rpc("bulk_respond_follow_requests", {
+    p_follow_ids: followIds,
+    p_accept: accept,
+  });
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
 /** Unfollow someone, or withdraw a request I sent. */
 export async function unfollowUser(myId: string, targetId: string): Promise<void> {
   const { error } = await supabase
@@ -569,6 +617,17 @@ export async function unfollowUser(myId: string, targetId: string): Promise<void
     .delete()
     .eq("follower_id", myId)
     .eq("following_id", targetId);
+  if (error) throw error;
+}
+
+/** Bulk unfollow multiple target IDs. */
+export async function bulkUnfollow(myId: string, targetIds: string[]): Promise<void> {
+  if (targetIds.length === 0) return;
+  const { error } = await supabase
+    .from("follows")
+    .delete()
+    .eq("follower_id", myId)
+    .in("following_id", targetIds);
   if (error) throw error;
 }
 
@@ -582,18 +641,65 @@ export async function removeFollower(myId: string, followerId: string): Promise<
   if (error) throw error;
 }
 
+/** Block a user — isolates privacy and removes reverse connections. */
+export async function blockUser(targetId: string): Promise<void> {
+  const { error } = await supabase.rpc("block_user", {
+    p_target_id: targetId,
+  });
+  if (error) throw error;
+}
+
+/** Unblock a previously blocked user. */
+export async function unblockUser(targetId: string): Promise<void> {
+  const { error } = await supabase.rpc("unblock_user", {
+    p_target_id: targetId,
+  });
+  if (error) throw error;
+}
+
+/** List blocked users for unblocking and privacy settings. */
+export async function listBlockedUsers(): Promise<FollowConnection[]> {
+  return listFollowConnections("blocked");
+}
+
 /**
  * People I follow / who follow me / requests awaiting my response /
- * requests I've sent.
+ * requests I've sent / blocked users.
  */
 export async function listFollowConnections(
-  kind: "followers" | "following" | "requests" | "sent" = "following"
+  kind: "followers" | "following" | "requests" | "sent" | "blocked" = "following"
 ): Promise<FollowConnection[]> {
   const { data, error } = await supabase.rpc("list_follow_connections", {
     p_kind: kind,
   });
   if (error) throw error;
   return (data ?? []) as FollowConnection[];
+}
+
+/** Get smart 2nd-degree follow suggestions ("People you may know"). */
+export async function getFollowSuggestions(
+  limit = 10
+): Promise<FollowSuggestion[]> {
+  const { data, error } = await supabase.rpc("get_follow_suggestions", {
+    p_limit: limit,
+  });
+  if (error) throw error;
+  return (data ?? []) as FollowSuggestion[];
+}
+
+/** Get follower & following growth analytics and sparkline trend data. */
+export async function getFollowAnalytics(): Promise<FollowAnalytics> {
+  const { data, error } = await supabase.rpc("get_follow_analytics");
+  if (error) throw error;
+  return (data ?? {
+    followers_count: 0,
+    following_count: 0,
+    mutuals_count: 0,
+    pending_count: 0,
+    growth_week: 0,
+    growth_month: 0,
+    history: [],
+  }) as FollowAnalytics;
 }
 
 /** True when I follow them AND they follow me — the gate for chat. */
@@ -608,20 +714,48 @@ export async function isMutualFollow(a: string, b: string): Promise<boolean> {
 
 /**
  * Live follow updates — an incoming request or an acceptance appears
- * without a refresh. Returns an unsubscribe function.
+ * without a refresh. Passes rich contextual events to subscriber.
  */
-export function subscribeToFollows(userId: string, onChange: () => void): () => void {
+export function subscribeToFollows(
+  userId: string,
+  onChange: (payload?: FollowRealtimePayload) => void
+): () => void {
   const channel = supabase
     .channel(`loop-follows-${userId}`)
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "follows" },
       (payload) => {
-        const row = (payload.new ?? payload.old) as
-          | { follower_id?: string; following_id?: string }
-          | undefined;
+        const oldRow = payload.old as any;
+        const newRow = payload.new as any;
+        const row = newRow ?? oldRow;
         if (!row) return;
-        if (row.follower_id === userId || row.following_id === userId) onChange();
+
+        const isMeFollower = row.follower_id === userId;
+        const isMeTarget = row.following_id === userId;
+
+        if (!isMeFollower && !isMeTarget) return;
+
+        let eventInfo: FollowRealtimePayload = {
+          eventType: payload.eventType as any,
+          otherUserId: isMeFollower ? row.following_id : row.follower_id,
+        };
+
+        if (payload.eventType === "INSERT") {
+          if (isMeTarget && row.status === "pending") {
+            eventInfo.isIncomingRequest = true;
+          }
+        } else if (payload.eventType === "UPDATE") {
+          if (isMeFollower && newRow?.status === "accepted" && oldRow?.status !== "accepted") {
+            eventInfo.isAccepted = true;
+          } else if (isMeFollower && newRow?.status === "declined") {
+            eventInfo.isDeclined = true;
+          }
+        } else if (payload.eventType === "DELETE") {
+          eventInfo.isUnfollowed = true;
+        }
+
+        onChange(eventInfo);
       }
     )
     .subscribe();
