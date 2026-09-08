@@ -31,6 +31,7 @@ import {
   ALL_ROUTINES,
   WorkoutRoutine,
   Exercise,
+  getNextWorkoutRecommendation,
 } from "../../data/homeWorkoutData";
 import {
   WorkoutUserProfile,
@@ -442,6 +443,75 @@ export default function HomeWorkoutApp() {
                 </div>
               </div>
             </div>
+
+            {/* Up Next in Your Schedule Banner */}
+            {(() => {
+              const nextRec = getNextWorkoutRecommendation(selectedRoutine, userProfile.workouts_completed);
+              return (
+                <div className="bg-[#EAF3F9] border border-[#BCE1F5] rounded-3xl p-3.5 mb-5 shadow-xs">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#1B6E99]" />
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#1B6E99]">
+                        Up Next in Your Plan
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#486581] bg-white/80 px-2 py-0.5 rounded-full border border-[#D7EBF7]">
+                      {nextRec.scheduleDay}
+                    </span>
+                  </div>
+
+                  <div
+                    className="bg-white border border-[#D7EBF7] rounded-2xl p-3 flex items-center justify-between gap-3 hover:border-[#1B6E99] transition-all cursor-pointer group shadow-2xs"
+                    onClick={() => openRoutine(nextRec.nextRoutine)}
+                  >
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#EAF3F9] shrink-0">
+                      <img
+                        src={nextRec.nextRoutine.coverImage}
+                        alt={nextRec.nextRoutine.title}
+                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-extrabold text-sm text-[#0B2238] truncate group-hover:text-[#1B6E99]">
+                        {nextRec.nextRoutine.title}
+                      </h4>
+                      <p className="text-[11px] font-medium text-[#486581] truncate mt-0.5">
+                        {nextRec.scheduleTiming}
+                      </p>
+                      <div className="flex items-center gap-2.5 mt-1 text-[10px] font-semibold text-[#7A97B0]">
+                        <span className="flex items-center gap-0.5">
+                          <Clock className="w-3 h-3 text-[#7A97B0]" />
+                          {nextRec.nextRoutine.durationMin}m
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <Flame className="w-3 h-3 text-[#FF7043]" />
+                          {nextRec.nextRoutine.estimatedCalories || 240} kcal
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <Dumbbell className="w-3 h-3 text-[#7A97B0]" />
+                          {nextRec.nextRoutine.exercises.length} Exercises
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      className="hw-btn-primary-blue !px-3 !py-1.5 text-xs shrink-0 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startLiveWorkout(nextRec.nextRoutine);
+                      }}
+                    >
+                      <span>Start</span>
+                      <Play className="w-3 h-3 fill-current ml-0.5" />
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-[#486581] font-medium mt-2 px-1 leading-tight">
+                    {nextRec.restDayAdvice}
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Categories Horizontal Tabs */}
             <div className="hw-section-title-row">
@@ -1439,44 +1509,133 @@ export default function HomeWorkoutApp() {
       )}
 
       {/* ================================================================
-          SESSION COMPLETE CELEBRATION MODAL
+          SESSION COMPLETE CELEBRATION MODAL WITH "WHAT TO DO NEXT" GUIDANCE
           ================================================================ */}
-      {showCongratsModal && (
-        <div className="hw-modal-overlay">
-          <div className="hw-modal-card">
-            <div className="hw-congrats-trophy">🏆</div>
-            <h3 className="hw-modal-title">Workout Completed!</h3>
-            <p className="hw-modal-sub">
-              Crushed it! You completed all <b>{totalRounds} Rounds</b> for <b>{selectedRoutine.title}</b> with clean form.
-            </p>
-            <div className="hw-congrats-stats-row">
-              <div>
-                <span className="hw-c-stat-val">{completedWorkoutStats.setsCount}</span>
-                <span className="hw-c-stat-lbl">Sets Hit</span>
+      {showCongratsModal && (() => {
+        const rec = getNextWorkoutRecommendation(selectedRoutine, userProfile.workouts_completed);
+        return (
+          <div className="hw-modal-overlay">
+            <div className="hw-modal-card max-w-sm w-full mx-4 max-h-[92vh] overflow-y-auto">
+              <div className="hw-congrats-trophy">🏆</div>
+              <h3 className="hw-modal-title">Workout Completed!</h3>
+              <p className="hw-modal-sub">
+                Crushed it! You completed all <b>{totalRounds} Rounds</b> for <b>{selectedRoutine.title}</b> with clean form.
+              </p>
+
+              {/* Stats Summary */}
+              <div className="hw-congrats-stats-row">
+                <div>
+                  <span className="hw-c-stat-val">{completedWorkoutStats.setsCount}</span>
+                  <span className="hw-c-stat-lbl">Sets Hit</span>
+                </div>
+                <div>
+                  <span className="hw-c-stat-val">{completedWorkoutStats.time}</span>
+                  <span className="hw-c-stat-lbl">Duration</span>
+                </div>
+                <div>
+                  <span className="hw-c-stat-val">{completedWorkoutStats.score}%</span>
+                  <span className="hw-c-stat-lbl">Score</span>
+                </div>
               </div>
-              <div>
-                <span className="hw-c-stat-val">{completedWorkoutStats.time}</span>
-                <span className="hw-c-stat-lbl">Duration</span>
+
+              {/* WHAT TO DO NEXT CARD */}
+              <div className="mt-4 p-3.5 bg-[#EAF3F9] border border-[#BCE1F5] rounded-2xl text-left">
+                <div className="flex items-center justify-between gap-1 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#1B6E99] bg-white px-2 py-0.5 rounded-full border border-[#BCE1F5]">
+                    Up Next in Your Schedule
+                  </span>
+                  <span className="text-[10px] font-bold text-[#486581]">
+                    {rec.scheduleDay}
+                  </span>
+                </div>
+
+                {/* Next Routine Preview Item */}
+                <div
+                  className="bg-white border border-[#D7EBF7] rounded-xl p-2.5 flex items-center gap-3 shadow-xs hover:border-[#1B6E99] transition-all cursor-pointer group"
+                  onClick={() => {
+                    setShowCongratsModal(false);
+                    openRoutine(rec.nextRoutine);
+                  }}
+                >
+                  <img
+                    src={rec.nextRoutine.coverImage}
+                    alt={rec.nextRoutine.title}
+                    className="w-14 h-14 rounded-lg object-cover object-top shrink-0 group-hover:scale-105 transition-transform"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-extrabold text-xs text-[#0B2238] truncate group-hover:text-[#1B6E99]">
+                      {rec.nextRoutine.title}
+                    </div>
+                    <div className="text-[10px] text-[#486581] font-medium truncate mt-0.5">
+                      {rec.scheduleTiming}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-[10px] font-semibold text-[#7A97B0]">
+                      <span className="flex items-center gap-0.5">
+                        <Clock className="w-2.5 h-2.5" />
+                        {rec.nextRoutine.durationMin}m
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <Flame className="w-2.5 h-2.5 text-[#FF7043]" />
+                        {rec.nextRoutine.estimatedCalories || 240} kcal
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <Dumbbell className="w-2.5 h-2.5 text-[#7A97B0]" />
+                        {rec.nextRoutine.exercises.length} Exercises
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Coach Rest & Activity Advice */}
+                <div className="mt-2.5 p-2 bg-white/80 rounded-lg border border-[#D7EBF7] text-[11px] text-[#0B2238] font-medium leading-snug">
+                  {rec.restDayAdvice}
+                </div>
+
+                {/* Level Up Progress Meter */}
+                <div className="mt-2.5 pt-2 border-t border-[#D7EBF7]/80">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-[#486581] mb-1">
+                    <span>{rec.currentLevelTitle} Progression</span>
+                    <span className="text-[#1B6E99]">{rec.sessionsDoneInLevel} / {rec.levelTargetSessions} Sessions</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#D7EBF7] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#1B6E99] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, (rec.sessionsDoneInLevel / rec.levelTargetSessions) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[9.5px] text-[#7A97B0] font-medium mt-1 leading-tight">
+                    {rec.remainingToLevelUp <= 1 ? "🔥 Almost ready to level up!" : `${rec.remainingToLevelUp} sessions until next level evaluation.`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="hw-c-stat-val">{completedWorkoutStats.score}%</span>
-                <span className="hw-c-stat-lbl">Score</span>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 mt-4">
+                <button
+                  className="hw-btn-primary-blue w-full py-2.5 cursor-pointer text-xs flex items-center justify-center gap-1.5"
+                  onClick={() => {
+                    setShowCongratsModal(false);
+                    openRoutine(rec.nextRoutine);
+                  }}
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Preview Next Workout ({rec.nextRoutine.title.split(" ")[1] || "Routine"})</span>
+                </button>
+                <button
+                  className="w-full py-2 rounded-full border border-[#CBD5E1] bg-white text-xs font-bold text-[#486581] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                  onClick={() => {
+                    setShowCongratsModal(false);
+                    setCurrentScreen("home");
+                    showToast("Workout saved to your profile! 🔥");
+                  }}
+                >
+                  Return to Dashboard
+                </button>
               </div>
             </div>
-            <button
-              className="hw-btn-primary-blue w-full mt-4 py-2.5 cursor-pointer"
-              onClick={() => {
-                setShowCongratsModal(false);
-                setCurrentScreen("progress");
-                showToast("Workout saved to your progress! 🔥");
-              }}
-            >
-              <Award className="w-4 h-4" />
-              <span>Save & View Progress</span>
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Toast Alert */}
       {toastMessage && (

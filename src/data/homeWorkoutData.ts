@@ -1163,3 +1163,86 @@ export const ALL_ROUTINES: WorkoutRoutine[] = [
   ...LEVEL_2_INTERMEDIATE.routines,
   ...LEVEL_3_ADVANCED.routines,
 ];
+
+export interface NextWorkoutRecommendation {
+  nextRoutine: WorkoutRoutine;
+  scheduleDay: string;
+  scheduleTiming: string;
+  restDayAdvice: string;
+  currentLevelTitle: string;
+  timeline: string;
+  sessionsDoneInLevel: number;
+  levelTargetSessions: number;
+  remainingToLevelUp: number;
+  levelUpCriteria: string;
+}
+
+export function getNextWorkoutRecommendation(
+  currentRoutine: WorkoutRoutine,
+  completedWorkoutsCount: number = 0
+): NextWorkoutRecommendation {
+  const currentLevel = currentRoutine.level;
+  const levelInfo =
+    ALL_PROGRAM_LEVELS.find((l) => l.level === currentLevel) || LEVEL_1_BEGINNER;
+  const routinesInLevel = levelInfo.routines;
+  const currentIndex = routinesInLevel.findIndex((r) => r.id === currentRoutine.id);
+
+  let nextRoutine: WorkoutRoutine;
+  let scheduleDay = "";
+  let scheduleTiming = "";
+  let restDayAdvice = "";
+
+  if (currentLevel === "Beginner") {
+    if (currentRoutine.id === "l1-upper") {
+      nextRoutine = routinesInLevel.find((r) => r.id === "l1-lower") || routinesInLevel[1];
+      scheduleDay = "Day 3";
+      scheduleTiming = "Lower Body Circuit (Squats, Lunges & Core)";
+      restDayAdvice = "Tomorrow (Day 2) is an Active Recovery / Light Walk day. Hit your Lower Body session on Day 3!";
+    } else {
+      nextRoutine = routinesInLevel.find((r) => r.id === "l1-upper") || routinesInLevel[0];
+      scheduleDay = "Day 5";
+      scheduleTiming = "Upper Body Circuit (Push, Pull & Deltoids)";
+      restDayAdvice = "Tomorrow (Day 4) is a Rest day. Re-energize for Upper Body Day on Day 5!";
+    }
+  } else if (currentLevel === "Intermediate") {
+    const nextIdx = (currentIndex + 1) % routinesInLevel.length;
+    nextRoutine = routinesInLevel[nextIdx];
+    if (currentRoutine.id === "l2-push") {
+      scheduleDay = "Day 2";
+      scheduleTiming = "Pull Day Circuit (Back, Lats & Biceps)";
+      restDayAdvice = "Target back width and vertical pulling in your next session.";
+    } else if (currentRoutine.id === "l2-pull") {
+      scheduleDay = "Day 3";
+      scheduleTiming = "Legs Day Circuit (Quads & Posterior Chain)";
+      restDayAdvice = "Power up your lower body compounds in your next session.";
+    } else {
+      scheduleDay = "Day 5";
+      scheduleTiming = "Push Day Circuit (Chest & Deltoid Hypertrophy)";
+      restDayAdvice = "Day 4 is Active Recovery. Repeat the Push circuit on Day 5.";
+    }
+  } else {
+    // Advanced 6-day split
+    const nextIdx = (currentIndex + 1) % routinesInLevel.length;
+    nextRoutine = routinesInLevel[nextIdx];
+    scheduleDay = nextRoutine.scheduleDay;
+    scheduleTiming = `${nextRoutine.title} • ${nextRoutine.subtitle}`;
+    restDayAdvice = `Focus area for next session: ${nextRoutine.focus} (${nextRoutine.durationMin} mins).`;
+  }
+
+  const levelTargetSessions = currentLevel === "Beginner" ? 8 : currentLevel === "Intermediate" ? 12 : 16;
+  const sessionsDoneInLevel = ((completedWorkoutsCount || 0) % levelTargetSessions) + 1;
+  const remainingToLevelUp = Math.max(1, levelTargetSessions - sessionsDoneInLevel);
+
+  return {
+    nextRoutine,
+    scheduleDay,
+    scheduleTiming,
+    restDayAdvice,
+    currentLevelTitle: levelInfo.title,
+    timeline: levelInfo.timeline,
+    sessionsDoneInLevel,
+    levelTargetSessions,
+    remainingToLevelUp,
+    levelUpCriteria: levelInfo.progressionCue,
+  };
+}
