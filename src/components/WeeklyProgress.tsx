@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Flame, Sparkles, Footprints, Compass, Zap, Target, Pencil, Check, CalendarDays } from "lucide-react";
+import { Flame, Footprints, Compass, Target, Pencil, Check, CalendarDays, Trophy, ChevronDown, ChevronUp } from "lucide-react";
 import { ActivityLog } from "../types";
 import { ActivityMode } from "../data/badges";
 import AchievementsRoadmap from "./AchievementsRoadmap";
@@ -15,12 +15,10 @@ const MODE_META: {
 }[] = [
   { mode: "Walking", icon: <Footprints className="w-4 h-4 text-black" /> },
   { mode: "Jogging", icon: <Compass className="w-4 h-4 text-black" /> },
-  { mode: "Sprinting", icon: <Zap className="w-4 h-4 text-black" /> },
 ];
 
 export default function WeeklyProgress({
   logs,
-  onStartSuggestedSession,
 }: WeeklyProgressProps) {
   // Weekly goal is user-owned and persisted.
   const [targetKm, setTargetKm] = useState(() => {
@@ -29,6 +27,7 @@ export default function WeeklyProgress({
   });
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState(String(targetKm));
+  const [showAchievements, setShowAchievements] = useState(false);
 
   const commitGoal = () => {
     const v = parseFloat(goalDraft);
@@ -83,15 +82,13 @@ export default function WeeklyProgress({
   const distancesByMode: Record<ActivityMode, number> = {
     Walking: 0,
     Jogging: 0,
-    Sprinting: 0,
   };
   logs.forEach((log) => {
-    if (log.type === "Walking" || log.type === "Jogging" || log.type === "Sprinting") {
+    if (log.type === "Walking" || log.type === "Jogging") {
       distancesByMode[log.type] += log.distanceKm;
     }
   });
-  const totalDistance =
-    distancesByMode.Walking + distancesByMode.Jogging + distancesByMode.Sprinting;
+  const totalDistance = distancesByMode.Walking + distancesByMode.Jogging;
 
   return (
     <div className="w-full space-y-10 max-w-4xl mx-auto pb-12">
@@ -225,7 +222,7 @@ export default function WeeklyProgress({
         </div>
       </div>
 
-      {/* Total Distance by Mode — a divided row, not a card of cards */}
+      {/* Total Distance by Mode */}
       <div>
         <div className="flex justify-between items-end mb-5 pb-4 border-b border-black/20">
           <div>
@@ -234,7 +231,7 @@ export default function WeeklyProgress({
               <span>Total Distance Travelled</span>
             </h3>
             <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-0.5 text-accent-serif">
-              Across walking, jogging &amp; sprinting
+              Across walking &amp; jogging
             </p>
           </div>
           <div className="text-right">
@@ -246,7 +243,7 @@ export default function WeeklyProgress({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x sm:divide-black/20 gap-6 sm:gap-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-black/20 gap-6 sm:gap-0">
           {MODE_META.map(({ mode, icon }) => (
             <div key={mode} className="sm:px-5 first:pl-0">
               <div className="flex items-center justify-between mb-2">
@@ -273,8 +270,39 @@ export default function WeeklyProgress({
         </div>
       </div>
 
-      {/* Achievements Roadmap (replaces the old big badges) */}
-      <AchievementsRoadmap distancesByMode={distancesByMode} />
+      {/* Collapsible Achievements Section */}
+      <div className="border-t border-black/20 pt-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="font-headline text-xl font-extrabold text-black tracking-tight flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-black" />
+              <span>Milestone Badges &amp; Achievements</span>
+            </h2>
+            <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+              Unlock milestones across walking &amp; jogging as you log distance
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAchievements(!showAchievements)}
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 border border-black text-xs font-black uppercase tracking-wider text-black bg-[#f8f1e3] hover:bg-black hover:text-white transition-all shadow-sm"
+          >
+            <span>{showAchievements ? "Hide Achievements" : "View All Badges"}</span>
+            {showAchievements ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        {showAchievements && (
+          <div className="mt-8 pt-6 border-t border-black/15 animate-fadeIn">
+            <AchievementsRoadmap distancesByMode={distancesByMode} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

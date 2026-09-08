@@ -123,7 +123,7 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
     buddyAvatar: "https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&w=300&q=80",
     status: "Nearby (200m)",
     distanceStr: "200m away",
-    meetupTrailName: "Sankey Tank Sprint Drills",
+    meetupTrailName: "Sankey Tank Morning Jog",
     unreadCount: 0,
     lastMessage: "Dropped a pin for 100m interval reps along the lake perimeter!",
     lastMessageTime: "Jul 21",
@@ -143,7 +143,7 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
         status: "read",
         attachment: {
           type: "trail",
-          title: "Sankey Tank Sprint Circuit (3.2 km)",
+          title: "Sankey Tank Jogging Circuit (3.2 km)",
           subtext: "Interval Drills • High Intensity Pace",
         },
       },

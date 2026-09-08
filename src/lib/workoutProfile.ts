@@ -20,6 +20,10 @@ export interface WorkoutUserProfile {
   total_calories_burned: number;
   onboarding_completed: boolean;
   sound_enabled: boolean;
+  height_cm?: number;
+  email?: string;
+  workouts_completed?: number;
+  total_workout_minutes?: number;
   created_at: string;
   updated_at: string;
 }

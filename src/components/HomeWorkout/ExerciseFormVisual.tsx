@@ -3,201 +3,261 @@ import React from "react";
 interface ExerciseFormVisualProps {
   exerciseId: string;
   exerciseName: string;
-  targetMuscles: string;
-  tempoNotes: string;
-  fallbackImage: string;
+  targetMuscles?: string;
+  tempoNotes?: string;
+  fallbackImage?: string;
 }
 
 /**
- * Renders an AI instructional exercise form visual with pose geometry,
- * motion indicators, and anatomical cues to guide proper technique.
+ * Animated SVG Kinematic Form Visualizer.
+ * Clean, distraction-free 60fps biomechanical movement animation matching each exercise mechanics.
  */
 export default function ExerciseFormVisual({
   exerciseId,
   exerciseName,
-  targetMuscles,
-  tempoNotes,
-  fallbackImage,
 }: ExerciseFormVisualProps) {
-  // Determine exercise category archetype for custom instructional graphic
   const nameLower = exerciseName.toLowerCase();
 
   const getExerciseDiagramType = () => {
-    if (nameLower.includes("push-up") || nameLower.includes("press")) return "push";
-    if (nameLower.includes("squat") || nameLower.includes("lunge") || nameLower.includes("split")) return "squat";
-    if (nameLower.includes("pull-up") || nameLower.includes("row") || nameLower.includes("chin-up")) return "pull";
-    if (nameLower.includes("plank") || nameLower.includes("dead bug") || nameLower.includes("crunch") || nameLower.includes("twist")) return "core";
-    if (nameLower.includes("raise") || nameLower.includes("fly")) return "shoulders";
-    if (nameLower.includes("curl") || nameLower.includes("extension")) return "arms";
-    if (nameLower.includes("bridge") || nameLower.includes("deadlift") || nameLower.includes("nordic") || nameLower.includes("superman")) return "posterior";
-    return "general";
+    if (nameLower.includes("pike") || nameLower.includes("overhead press")) return "pike";
+    if (nameLower.includes("diamond") || nameLower.includes("dip") || nameLower.includes("extension")) return "dips";
+    if (nameLower.includes("push-up") || nameLower.includes("press") || nameLower.includes("floor press")) return "push";
+    if (nameLower.includes("lunge") || nameLower.includes("step-up") || nameLower.includes("split")) return "lunges";
+    if (nameLower.includes("squat") || nameLower.includes("wall sit")) return "squat";
+    if (nameLower.includes("pull-up") || nameLower.includes("row") || nameLower.includes("chin-up") || nameLower.includes("pull-apart")) return "pull";
+    if (nameLower.includes("bridge") || nameLower.includes("deadlift") || nameLower.includes("nordic") || nameLower.includes("superman") || nameLower.includes("snow angel")) return "posterior";
+    if (nameLower.includes("lateral raise") || nameLower.includes("front raise") || nameLower.includes("shoulder")) return "shoulders";
+    if (nameLower.includes("curl") || nameLower.includes("arm")) return "arms";
+    if (nameLower.includes("plank") || nameLower.includes("dead bug") || nameLower.includes("crunch") || nameLower.includes("twist") || nameLower.includes("climber") || nameLower.includes("leg raise") || nameLower.includes("core")) return "core";
+    return "push";
   };
 
-  const diagramType = getExerciseDiagramType();
+  const type = getExerciseDiagramType();
 
   return (
-    <div className="relative w-full h-[210px] rounded-2xl overflow-hidden bg-gradient-to-b from-[#0F2942] to-[#081827] border border-[#87CEEB]/40 flex flex-col justify-between p-3.5 shadow-inner">
-      {/* Background Subtle Silhouette / Illustrated Pose */}
-      <div className="absolute inset-0 opacity-25 flex items-center justify-center pointer-events-none">
-        <img
-          src={fallbackImage}
-          alt={exerciseName}
-          className="w-full h-full object-cover mix-blend-luminosity filter blur-[1px]"
-        />
-      </div>
+    <div className="relative w-full h-[200px] rounded-2xl overflow-hidden bg-gradient-to-b from-[#081B2C] via-[#0E2841] to-[#061422] border border-[#87CEEB]/40 flex items-center justify-center p-3 shadow-xl select-none">
+      <style>{`
+        @keyframes animPushUp {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(22px); }
+        }
+        @keyframes animPushArms {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(0.45); }
+        }
+        @keyframes animSquat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(26px); }
+        }
+        @keyframes animPullUp {
+          0%, 100% { transform: translateY(24px); }
+          50% { transform: translateY(0px); }
+        }
+        @keyframes animPike {
+          0%, 100% { transform: translate(0px, 0px); }
+          50% { transform: translate(-10px, 18px); }
+        }
+        @keyframes animLunge {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(20px); }
+        }
+        @keyframes animCurl {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(-85deg); }
+        }
+        @keyframes animShoulderRaise {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(-75deg); }
+        }
+        @keyframes animBridge {
+          0%, 100% { transform: translateY(18px); }
+          50% { transform: translateY(0px); }
+        }
+        @keyframes animDeadBugArm {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(-45deg); }
+        }
+        @keyframes animDeadBugLeg {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(40deg); }
+        }
+        @keyframes animPulseGlow {
+          0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 2px #87CEEB); }
+          50% { opacity: 1; filter: drop-shadow(0 0 8px #38BDF8); }
+        }
+        @keyframes animArrowLoop {
+          0% { opacity: 0.3; transform: translateY(-3px); }
+          50% { opacity: 1; transform: translateY(3px); }
+          100% { opacity: 0.3; transform: translateY(-3px); }
+        }
+      `}</style>
 
-      {/* SVG Instructional Overlay based on exercise mechanic */}
+      {/* Main Animated Biomechanical Figure */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">
-        {diagramType === "push" && (
-          <svg viewBox="0 0 300 130" className="w-full h-full max-w-[280px]">
-            {/* Ground Line */}
-            <line x1="20" y1="110" x2="280" y2="110" stroke="#87CEEB" strokeWidth="2" strokeDasharray="4 4" opacity="0.6" />
-            {/* Body Line Plank */}
-            <line x1="60" y1="95" x2="220" y2="55" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-            {/* Head */}
-            <circle cx="235" cy="50" r="14" fill="#87CEEB" />
-            {/* Arms at 45-degree angle */}
-            <polyline points="200,60 215,85 200,110" fill="none" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-            {/* Feet */}
-            <circle cx="60" cy="102" r="6" fill="#87CEEB" />
-            {/* Motion Arrow Down & Up */}
-            <path d="M 215 30 Q 225 15 235 30" fill="none" stroke="#FF7043" strokeWidth="2.5" strokeLinecap="round" />
-            <polygon points="235,30 228,24 238,24" fill="#FF7043" />
-            <text x="150" y="25" fill="#87CEEB" fontSize="11" fontWeight="bold" textAnchor="middle">
-              45° Elbow Angle • Core Braced
-            </text>
-            <text x="150" y="124" fill="#E2E8F0" fontSize="9" textAnchor="middle">
-              Full Range of Motion
-            </text>
+        {/* 1. PUSH-UPS & PRESSES */}
+        {type === "push" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="20" y1="130" x2="300" y2="130" stroke="#87CEEB" strokeWidth="2" strokeDasharray="5 5" opacity="0.4" />
+            <g style={{ animation: "animPushUp 2.8s ease-in-out infinite" }}>
+              <line x1="70" y1="115" x2="230" y2="70" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <line x1="70" y1="115" x2="230" y2="70" stroke="#87CEEB" strokeWidth="2" strokeDasharray="3 3" opacity="0.8" />
+              <circle cx="248" cy="62" r="14" fill="#87CEEB" />
+              <circle cx="150" cy="92" r="6" fill="#38BDF8" style={{ animation: "animPulseGlow 2.8s infinite" }} />
+              <g style={{ transformOrigin: "210px 75px", animation: "animPushArms 2.8s ease-in-out infinite" }}>
+                <polyline points="210,75 225,102 210,130" fill="none" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              </g>
+              <circle cx="70" cy="120" r="7" fill="#87CEEB" />
+            </g>
+            <g style={{ animation: "animArrowLoop 2.8s infinite" }}>
+              <path d="M 280 65 L 280 95" fill="none" stroke="#FF7043" strokeWidth="2.5" strokeLinecap="round" />
+              <polygon points="280,98 276,90 284,90" fill="#FF7043" />
+            </g>
           </svg>
         )}
 
-        {diagramType === "squat" && (
-          <svg viewBox="0 0 300 130" className="w-full h-full max-w-[280px]">
-            {/* Ground */}
-            <line x1="40" y1="115" x2="260" y2="115" stroke="#87CEEB" strokeWidth="2" strokeDasharray="4 4" opacity="0.6" />
-            {/* Head */}
-            <circle cx="150" cy="30" r="13" fill="#87CEEB" />
-            {/* Torso Upright */}
-            <line x1="150" y1="43" x2="140" y2="80" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-            {/* Thigh Parallel */}
-            <line x1="140" y1="80" x2="185" y2="82" stroke="#87CEEB" strokeWidth="5" strokeLinecap="round" />
-            {/* Shin */}
-            <line x1="185" y1="82" x2="175" y2="115" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-            {/* Knees tracking arrow */}
-            <path d="M 120 40 L 120 75" fill="none" stroke="#FF7043" strokeWidth="2" strokeDasharray="3 3" />
-            <text x="150" y="18" fill="#87CEEB" fontSize="11" fontWeight="bold" textAnchor="middle">
-              Parallel Depth • Chest Up
-            </text>
-            <text x="150" y="126" fill="#E2E8F0" fontSize="9" textAnchor="middle">
-              Drive Through Whole Foot
-            </text>
+        {/* 2. SQUATS & SPLIT SQUATS */}
+        {type === "squat" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="40" y1="135" x2="280" y2="135" stroke="#87CEEB" strokeWidth="2" strokeDasharray="5 5" opacity="0.4" />
+            <g style={{ animation: "animSquat 3s ease-in-out infinite" }}>
+              <circle cx="160" cy="30" r="14" fill="#87CEEB" />
+              <line x1="160" y1="44" x2="148" y2="85" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <line x1="148" y1="85" x2="195" y2="88" stroke="#38BDF8" strokeWidth="6" strokeLinecap="round" />
+              <line x1="195" y1="88" x2="182" y2="135" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <circle cx="170" cy="86" r="6" fill="#FF7043" style={{ animation: "animPulseGlow 3s infinite" }} />
+              <circle cx="148" cy="85" r="7" fill="#38BDF8" />
+              <circle cx="182" cy="135" r="7" fill="#87CEEB" />
+            </g>
+            <line x1="110" y1="88" x2="230" y2="88" stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
           </svg>
         )}
 
-        {diagramType === "pull" && (
-          <svg viewBox="0 0 300 130" className="w-full h-full max-w-[280px]">
-            {/* Bar / Anchor */}
-            <line x1="80" y1="20" x2="220" y2="20" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" />
-            {/* Arms gripping */}
-            <line x1="120" y1="20" x2="135" y2="45" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" />
-            <line x1="180" y1="20" x2="165" y2="45" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" />
-            {/* Head */}
-            <circle cx="150" cy="40" r="12" fill="#FFFFFF" />
-            {/* Torso */}
-            <line x1="150" y1="52" x2="150" y2="90" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-            {/* Legs */}
-            <line x1="150" y1="90" x2="145" y2="120" stroke="#87CEEB" strokeWidth="4" />
-            <line x1="150" y1="90" x2="155" y2="120" stroke="#87CEEB" strokeWidth="4" />
-            <text x="150" y="15" fill="#87CEEB" fontSize="11" fontWeight="bold" textAnchor="middle">
-              Lead with Chest • Squeeze Lats
-            </text>
+        {/* 3. PULL-UPS & ROWS */}
+        {type === "pull" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="60" y1="22" x2="260" y2="22" stroke="#87CEEB" strokeWidth="5" strokeLinecap="round" />
+            <g style={{ animation: "animPullUp 3s ease-in-out infinite" }}>
+              <circle cx="120" cy="22" r="6" fill="#87CEEB" />
+              <circle cx="200" cy="22" r="6" fill="#87CEEB" />
+              <polyline points="120,22 135,52 150,60" fill="none" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points="200,22 185,52 170,60" fill="none" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="160" cy="46" r="13" fill="#87CEEB" />
+              <line x1="160" y1="60" x2="160" y2="105" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <circle cx="145" cy="72" r="5" fill="#38BDF8" style={{ animation: "animPulseGlow 3s infinite" }} />
+              <circle cx="175" cy="72" r="5" fill="#38BDF8" style={{ animation: "animPulseGlow 3s infinite" }} />
+              <line x1="160" y1="105" x2="155" y2="140" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            </g>
           </svg>
         )}
 
-        {diagramType === "core" && (
-          <svg viewBox="0 0 300 130" className="w-full h-full max-w-[280px]">
-            {/* Mat */}
-            <line x1="30" y1="110" x2="270" y2="110" stroke="#87CEEB" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
-            {/* Flat Torso / Plank Line */}
-            <line x1="80" y1="75" x2="220" y2="75" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-            <circle cx="232" cy="72" r="12" fill="#87CEEB" />
-            {/* Forearm support */}
-            <polyline points="205,75 210,105 190,105" fill="none" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" />
-            {/* Feet */}
-            <circle cx="80" cy="100" r="5" fill="#87CEEB" />
-            <line x1="80" y1="75" x2="80" y2="100" stroke="#87CEEB" strokeWidth="4" />
-            <text x="150" y="30" fill="#87CEEB" fontSize="11" fontWeight="bold" textAnchor="middle">
-              Neutral Spine • Zero Sagging
-            </text>
-            <text x="150" y="124" fill="#E2E8F0" fontSize="9" textAnchor="middle">
-              Tuck Ribs & Squeeze Glutes
-            </text>
+        {/* 4. PIKE PUSH-UPS & OVERHEAD */}
+        {type === "pike" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="30" y1="130" x2="290" y2="130" stroke="#87CEEB" strokeWidth="2" strokeDasharray="5 5" opacity="0.4" />
+            <g style={{ animation: "animPike 2.8s ease-in-out infinite" }}>
+              <line x1="100" y1="130" x2="160" y2="50" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <line x1="160" y1="50" x2="215" y2="90" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <circle cx="225" cy="100" r="13" fill="#87CEEB" />
+              <polyline points="205,82 220,105 210,130" fill="none" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="205" cy="82" r="6" fill="#FF7043" style={{ animation: "animPulseGlow 2.8s infinite" }} />
+            </g>
           </svg>
         )}
 
-        {diagramType === "shoulders" && (
-          <svg viewBox="0 0 300 130" className="w-full h-full max-w-[280px]">
-            {/* Head */}
-            <circle cx="150" cy="40" r="13" fill="#FFFFFF" />
-            <line x1="150" y1="53" x2="150" y2="105" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-            {/* Lateral Arms */}
-            <line x1="150" y1="62" x2="85" y2="65" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" />
-            <line x1="150" y1="62" x2="215" y2="65" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" />
-            {/* Dumbbells */}
-            <circle cx="85" cy="65" r="7" fill="#FF7043" />
-            <circle cx="215" cy="65" r="7" fill="#FF7043" />
-            <text x="150" y="20" fill="#87CEEB" fontSize="11" fontWeight="bold" textAnchor="middle">
-              Lead With Elbows • No Momentum
-            </text>
+        {/* 5. DIPS & TRICEPS */}
+        {type === "dips" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <rect x="70" y="80" width="50" height="50" fill="none" stroke="#87CEEB" strokeWidth="2" strokeDasharray="3 3" />
+            <g style={{ animation: "animPushUp 2.6s ease-in-out infinite" }}>
+              <circle cx="145" cy="40" r="13" fill="#87CEEB" />
+              <line x1="145" y1="53" x2="145" y2="95" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <polyline points="110,80 125,75 142,65" fill="none" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="125" cy="75" r="6" fill="#FF7043" style={{ animation: "animPulseGlow 2.6s infinite" }} />
+              <polyline points="145,95 190,105 220,130" fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            </g>
           </svg>
         )}
 
-        {diagramType === "arms" && (
-          <svg viewBox="0 0 300 130" className="w-full h-full max-w-[280px]">
-            <circle cx="150" cy="35" r="13" fill="#FFFFFF" />
-            <line x1="150" y1="48" x2="150" y2="105" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-            {/* Pinned Upper Arm & Forearm Curl */}
-            <line x1="150" y1="58" x2="160" y2="85" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" />
-            <line x1="160" y1="85" x2="145" y2="60" stroke="#87CEEB" strokeWidth="4" strokeLinecap="round" />
-            <circle cx="145" cy="60" r="7" fill="#FF7043" />
-            <text x="150" y="18" fill="#87CEEB" fontSize="11" fontWeight="bold" textAnchor="middle">
-              Pin Elbows to Ribs • Full Squeeze
-            </text>
+        {/* 6. LUNGES & STEP-UPS */}
+        {type === "lunges" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="30" y1="135" x2="290" y2="135" stroke="#87CEEB" strokeWidth="2" strokeDasharray="5 5" opacity="0.4" />
+            <g style={{ animation: "animLunge 2.8s ease-in-out infinite" }}>
+              <circle cx="160" cy="32" r="13" fill="#87CEEB" />
+              <line x1="160" y1="45" x2="160" y2="85" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <polyline points="160,85 200,90 195,135" fill="none" stroke="#38BDF8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points="160,85 125,105 110,135" fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="160" cy="85" r="6" fill="#FF7043" style={{ animation: "animPulseGlow 2.8s infinite" }} />
+            </g>
           </svg>
         )}
 
-        {diagramType === "posterior" && (
-          <svg viewBox="0 0 300 130" className="w-full h-full max-w-[280px]">
-            <line x1="30" y1="115" x2="270" y2="115" stroke="#87CEEB" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
-            <polyline points="70,115 110,65 170,110 220,110" fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="232" cy="108" r="11" fill="#87CEEB" />
-            <text x="150" y="25" fill="#87CEEB" fontSize="11" fontWeight="bold" textAnchor="middle">
-              Hinge at Hips • Squeeze Glutes at Top
-            </text>
+        {/* 7. POSTERIOR (GLUTE BRIDGES & SUPERMANS) */}
+        {type === "posterior" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="30" y1="125" x2="290" y2="125" stroke="#87CEEB" strokeWidth="2" strokeDasharray="5 5" opacity="0.4" />
+            <circle cx="80" cy="115" r="13" fill="#87CEEB" />
+            <g style={{ animation: "animBridge 2.6s ease-in-out infinite" }}>
+              <line x1="80" y1="115" x2="165" y2="70" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+              <line x1="165" y1="70" x2="230" y2="125" stroke="#38BDF8" strokeWidth="6" strokeLinecap="round" />
+              <circle cx="165" cy="70" r="7" fill="#FF7043" style={{ animation: "animPulseGlow 2.6s infinite" }} />
+            </g>
+            <circle cx="230" cy="125" r="7" fill="#87CEEB" />
           </svg>
         )}
 
-        {diagramType === "general" && (
-          <div className="flex flex-col items-center gap-1.5 text-center px-4">
-            <span className="text-xs font-bold text-[#87CEEB] tracking-wide uppercase">
-              Technique Guide: {exerciseName}
-            </span>
-            <p className="text-[11px] text-[#E2E8F0] max-w-[250px] leading-snug">
-              Maintain steady control on the lowering phase and strict form.
-            </p>
-          </div>
+        {/* 8. SHOULDERS (LATERAL & FRONT RAISES) */}
+        {type === "shoulders" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="60" y1="135" x2="260" y2="135" stroke="#87CEEB" strokeWidth="2" strokeDasharray="5 5" opacity="0.4" />
+            <circle cx="160" cy="30" r="13" fill="#87CEEB" />
+            <line x1="160" y1="43" x2="160" y2="105" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+            <line x1="160" y1="105" x2="145" y2="135" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            <line x1="160" y1="105" x2="175" y2="135" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            <g style={{ transformOrigin: "160px 50px", animation: "animShoulderRaise 2.6s ease-in-out infinite" }}>
+              <line x1="160" y1="50" x2="220" y2="90" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" />
+              <circle cx="220" cy="90" r="6" fill="#87CEEB" />
+            </g>
+            <g style={{ transformOrigin: "160px 50px", animation: "animShoulderRaise 2.6s ease-in-out infinite reverse" }}>
+              <line x1="160" y1="50" x2="100" y2="90" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" />
+              <circle cx="100" cy="90" r="6" fill="#87CEEB" />
+            </g>
+          </svg>
         )}
-      </div>
 
-      {/* Bottom Form Overlay Bar */}
-      <div className="relative z-10 flex items-center justify-between bg-[#0A2239]/80 backdrop-blur-md rounded-xl px-3 py-1.5 border border-white/10">
-        <span className="text-[10px] font-bold text-[#87CEEB] truncate max-w-[170px]">
-          Target: {targetMuscles.split(",")[0]}
-        </span>
-        <span className="text-[10px] font-extrabold text-[#FF7043] uppercase tracking-wider">
-          {tempoNotes.includes("Slow") ? "Controlled Tempo" : "Strict Form"}
-        </span>
+        {/* 9. ARMS (BICEP & HAMMER CURLS) */}
+        {type === "arms" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <circle cx="160" cy="30" r="13" fill="#87CEEB" />
+            <line x1="160" y1="43" x2="160" y2="105" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+            <line x1="160" y1="105" x2="150" y2="135" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            <line x1="160" y1="105" x2="170" y2="135" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            <line x1="160" y1="50" x2="175" y2="85" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+            <g style={{ transformOrigin: "175px 85px", animation: "animCurl 2.4s ease-in-out infinite" }}>
+              <line x1="175" y1="85" x2="185" y2="120" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" />
+              <circle cx="185" cy="120" r="7" fill="#87CEEB" />
+            </g>
+            <circle cx="170" cy="70" r="6" fill="#FF7043" style={{ animation: "animPulseGlow 2.4s infinite" }} />
+          </svg>
+        )}
+
+        {/* 10. CORE & CONDITIONING (DEADBUGS, PLANKS, CRUNCHES) */}
+        {type === "core" && (
+          <svg viewBox="0 0 320 150" className="w-full h-full max-w-[280px]">
+            <line x1="30" y1="125" x2="290" y2="125" stroke="#87CEEB" strokeWidth="2" strokeDasharray="5 5" opacity="0.4" />
+            <line x1="100" y1="120" x2="200" y2="120" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+            <circle cx="85" cy="115" r="13" fill="#87CEEB" />
+            <circle cx="150" cy="115" r="8" fill="#FF7043" style={{ animation: "animPulseGlow 2.2s infinite" }} />
+            <g style={{ transformOrigin: "115px 115px", animation: "animDeadBugArm 2.6s ease-in-out infinite" }}>
+              <line x1="115" y1="115" x2="115" y2="70" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" />
+              <circle cx="115" cy="70" r="5" fill="#87CEEB" />
+            </g>
+            <g style={{ transformOrigin: "185px 115px", animation: "animDeadBugLeg 2.6s ease-in-out infinite" }}>
+              <polyline points="185,115 185,75 220,75" fill="none" stroke="#38BDF8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="220" cy="75" r="5" fill="#87CEEB" />
+            </g>
+          </svg>
+        )}
       </div>
     </div>
   );

@@ -14,9 +14,10 @@ export interface Route {
   };
   review: string;
   reviewTime: string;
-  category: "Walking" | "Jogging" | "Sprinting";
+  category: "Walking" | "Jogging";
   lat: number; // relative grid percentage or map pos
   lng: number; // relative grid percentage or map pos
+  visibility?: PostVisibility;
 }
 
 export type PostVisibility = "PUBLIC" | "PRIVATE";
@@ -83,7 +84,7 @@ export interface UserPing {
   locationName: string;
   lat: number;
   lng: number;
-  category: "Walking" | "Jogging" | "Sprinting";
+  category: "Walking" | "Jogging";
   authorName: string;
   authorAvatar: string;
   note: string;

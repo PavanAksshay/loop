@@ -13,7 +13,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "2. Health & Safety Disclaimer",
-    body: "Loop provides fitness tracking, route suggestions, and community meetups for informational purposes only. It is not medical advice. Consult a qualified healthcare professional before starting any new exercise program. You participate in walks, jogs, sprints, and meetups at your own risk.",
+    body: "Loop provides fitness tracking, route suggestions, and community meetups for informational purposes only. It is not medical advice. Consult a qualified healthcare professional before starting any new exercise program. You participate in walks, jogs, and meetups at your own risk.",
   },
   {
     title: "3. Community & Meetups",

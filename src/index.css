@@ -28,7 +28,6 @@
 
   --mode-walking: #21190f;
   --mode-jogging: #21190f;
-  --mode-sprinting: #21190f;
 
   /* ---------- Logo tokens (solid ink mark) ---------- */
   --wb-logo-glow: none;
@@ -275,8 +274,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* ================================================================== */
 .roadmap-track { --road-off: rgba(38, 28, 15, 0.16); --road-on: #21190f; }
 .roadmap-track[data-mode="Walking"],
-.roadmap-track[data-mode="Jogging"],
-.roadmap-track[data-mode="Sprinting"] { --road-on: #21190f; }
+.roadmap-track[data-mode="Jogging"] { --road-on: #21190f; }
 
 canvas.fireflies-canvas { display: none; }
 

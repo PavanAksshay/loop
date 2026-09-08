@@ -1211,7 +1211,7 @@ export default function OnboardingFlow({
       >
         <ChipGroup
           multi
-          options={["Walking", "Jogging", "Sprinting", "Hiking", "Trail running"]}
+          options={["Walking", "Jogging", "Hiking", "Trail running"]}
           value={preferredActivities}
           onChange={setPreferredActivities}
         />
@@ -1585,7 +1585,7 @@ export default function OnboardingFlow({
               plans and pacing suggestions are general
               guidance only. Talk to a qualified healthcare professional before
               starting a new exercise programme, and stop immediately if you
-              feel unwell. You take part in every walk, jog and sprint at your
+              feel unwell. You take part in every walk and jog at your
               own risk.
             </p>
           </section>

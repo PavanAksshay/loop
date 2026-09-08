@@ -27,8 +27,7 @@ import {
   FileText,
   ChevronLeft,
   History,
-  Mountain,
-  Users
+  Mountain
 } from "lucide-react";
 import { Route, ActivityLog, AchievementBadge, UserPing, DEFAULT_AVATARS, ChatThread } from "./types";
 import { ProfileRow, saveProfile, validatePhoneNumber } from "./lib/db";
@@ -43,12 +42,8 @@ import FogTransition from "./components/FogTransition";
 import BuddyChatModal, { INITIAL_CHAT_THREADS } from "./components/BuddyChatModal";
 import TermsOfUse from "./components/TermsOfUse";
 import SessionHistory from "./components/SessionHistory";
-import PostsPage from "./components/PostsPage";
-import PostModal from "./components/PostModal";
-import LoadingSkeleton from "./components/LoadingSkeleton";
-import LoopLogo from "./components/LoopLogo";
 import DatePicker from "./components/DatePicker";
-import { usePosts } from "./lib/posts";
+import LoopLogo from "./components/LoopLogo";
 // Photo: Augustus Binu / www.dreamsparrow.net — CC BY-SA 3.0, via Wikimedia Commons
 // (self-hosted because the trail's original hotlinked Unsplash photo had gone 404)
 import cubbonParkImage from "./assets/cubbon-park.jpg";
@@ -95,7 +90,7 @@ const initialRoutes: Route[] = [
   },
   {
     id: "route-3",
-    name: "Sankey Tank Perimeter Sprint Track",
+    name: "Sankey Tank Perimeter Jogging Track",
     location: "Sadashivanagar, Bengaluru",
     distanceKm: 3.2,
     elevationGainM: 20,
@@ -103,12 +98,12 @@ const initialRoutes: Route[] = [
     rating: 4.8,
     image: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=800&q=80",
     author: {
-      name: "Bolt Master",
+      name: "Alex Runner",
       avatar: DEFAULT_AVATARS[2].url,
     },
-    review: "Scenic lakeside walkway with well-paved tracks. Perfect for high-intensity interval sprints and tempo drills.",
+    review: "Scenic lakeside walkway with well-paved tracks. Perfect for tempo runs and interval training.",
     reviewTime: "3 days ago",
-    category: "Sprinting",
+    category: "Jogging",
     lat: 13.0072,
     lng: 77.5707,
   },
@@ -187,14 +182,14 @@ const initialUserPings: UserPing[] = [
   },
   {
     id: "ping-3",
-    title: "Sankey Tank Morning Sprint Drills",
+    title: "Sankey Tank Morning Jog Group",
     locationName: "Sankey Tank Walkway, Sadashivanagar",
     lat: 13.0075,
     lng: 77.5710,
-    category: "Sprinting",
+    category: "Jogging",
     authorName: "Vikram Seth",
     authorAvatar: DEFAULT_AVATARS[4].url,
-    note: "Looking for 2-3 sprint workout partners for 100m interval reps along the lake perimeter!",
+    note: "Looking for 2-3 morning jogging partners along the lake perimeter!",
     timeSlot: "Today @ 7:00 AM",
     maxJoiners: 5,
     currentJoiners: 2,
@@ -325,9 +320,9 @@ interface AppProps {
 
 export default function App({ profile, onSignOut }: AppProps = {}) {
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "feed" | "posts" | "sessions" | "analytics"
+    "dashboard" | "feed" | "sessions" | "analytics"
   >("dashboard");
-  const [selectedCategory, setSelectedCategory] = useState<"Walking" | "Jogging" | "Sprinting">("Walking");
+  const [selectedCategory, setSelectedCategory] = useState<"Walking" | "Jogging">("Walking");
 
   const [routes, setRoutes] = useState<Route[]>(() => {
     const saved = localStorage.getItem("walkbuddy_routes");
@@ -348,8 +343,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
 
   // Modals
   const [showPostRouteForm, setShowPostRouteForm] = useState(false);
-  const [showPostModal, setShowPostModal] = useState(false);
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileDrawer, setShowProfileDrawer] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
@@ -360,7 +353,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
   const [showFinishAnim, setShowFinishAnim] = useState(false);
   /** Session metrics carried into the Post Trail form. */
   const [trailPrefill, setTrailPrefill] = useState<TrailPrefill | null>(null);
-  const [scheduledTrail, setScheduledTrail] = useState<Route | null>(null);
 
   // Profile drawer UI mode: read-only until the user taps "Edit Profile", and
   // the avatar picker stays collapsed until "Choose Avatar" is tapped.
@@ -457,9 +449,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
     { id: 2, text: "New Bangalore meetup pinged near Lalbagh Glasshouse", read: false, time: "1h ago" },
     { id: 3, text: "You unlocked a new distance milestone badge!", read: true, time: "1d ago" },
   ]);
-
-  const { posts, loading, error, reactionState, createPost, reactToPost, postMap } = usePosts(routes, profile?.id);
-  const selectedPost = posts.find((post) => post.id === selectedPostId) ?? null;
 
   const unreadNotificationCount = notifications.filter((n) => !n.read).length;
 
@@ -841,7 +830,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
       elevationGainM: log.elevationGainM ?? 0,
       estimatedTimeMin: log.durationMin,
       category:
-        log.type === "Jogging" || log.type === "Sprinting" ? log.type : "Walking",
+        log.type === "Jogging" ? "Jogging" : "Walking",
     });
     setActiveTab("feed");
     setShowPostRouteForm(true);
@@ -870,68 +859,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
     };
     setRoutes((prev) => [newRoute, ...prev]);
     return newRoute;
-  };
-
-  const handleOpenScheduleModal = (route: Route) => {
-    setScheduledTrail(route);
-    setShowPostModal(true);
-  };
-
-  /** Opens Create Post from the Posts page itself, with no trail preselected. */
-  const handleOpenCreatePostModal = () => {
-    setScheduledTrail(null);
-    setShowPostModal(true);
-  };
-
-  const handlePublishPost = async (payload: {
-    title: string;
-    description: string;
-    scheduled_at: string;
-    visibility: "PUBLIC" | "PRIVATE";
-    trailId?: string;
-    trailDraft?: Omit<Route, "id">;
-  }) => {
-    if (!profile?.id) {
-      pushToast("Sign in to publish a Post.", "warn");
-      return;
-    }
-
-    let routeForPost = scheduledTrail;
-    if (!routeForPost && payload.trailId) {
-      routeForPost = routes.find((r) => r.id === payload.trailId) ?? null;
-    }
-    if (!routeForPost && payload.trailDraft) {
-      routeForPost = handlePostRoute({
-        ...payload.trailDraft,
-        author: {
-          name: profile.username || profile.full_name || "Trail Explorer",
-          avatar: profile.avatar_url || DEFAULT_AVATARS[0].url,
-        },
-      });
-    }
-
-    if (!routeForPost) {
-      pushToast("Choose or create a trail before publishing.", "warn");
-      return;
-    }
-
-    await createPost({
-      id: `post-${Date.now()}`,
-      creator_id: profile.id,
-      trail_id: routeForPost.id,
-      title: payload.title,
-      description: payload.description,
-      scheduled_at: payload.scheduled_at,
-      visibility: payload.visibility,
-      status: "ACTIVE",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
-
-    pushToast("📅 Your post has been scheduled successfully!", "success");
-    setScheduledTrail(null);
-    setShowPostModal(false);
-    setActiveTab("posts");
   };
 
   const handleToggleBadge = (badgeId: string) => {
@@ -994,16 +921,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               }`}
             >
               Feed
-            </button>
-            <button
-              onClick={() => setActiveTab("posts")}
-              className={`font-headline text-xs uppercase tracking-wider font-extrabold py-1.5 transition-all relative ${
-                activeTab === "posts"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-500 hover:text-black"
-              }`}
-            >
-              Posts
             </button>
             <button
               onClick={() => setActiveTab("sessions")}
@@ -1556,21 +1473,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                   setTrailPrefill(null);
                   setShowPostRouteForm(true);
                 }}
-                onScheduleTrail={handleOpenScheduleModal}
-              />
-            </div>
-          )}
-
-          {activeTab === "posts" && (
-            <div className="px-4 md:px-10 pt-6">
-              <PostsPage
-                posts={Object.values(postMap)}
-                currentUserId={profile?.id}
-                reactionState={reactionState}
-                onReact={reactToPost}
-                onCreatePost={handleOpenCreatePostModal}
-                selectedPostId={selectedPostId}
-                onSelectPost={setSelectedPostId}
               />
             </div>
           )}
@@ -1855,17 +1757,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
         </div>
       )}
 
-      <PostModal
-        isOpen={showPostModal}
-        route={scheduledTrail}
-        routes={routes}
-        userId={profile?.id}
-        onClose={() => {
-          setShowPostModal(false);
-          setScheduledTrail(null);
-        }}
-        onPublish={handlePublishPost}
-      />
 
       {/* Floating Start-Session Button — on every page, opens the timer HUD */}
       {!activeSession && !completedSession && (
@@ -1922,20 +1813,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
           <span className="text-[9px] uppercase tracking-wider font-extrabold mt-1">Feed</span>
         </button>
 
-        <button
-          onClick={() => {
-            setActiveTab("posts");
-            setShowPostRouteForm(false);
-          }}
-          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all ${
-            activeTab === "posts"
-              ? "text-black font-black bg-[#f0e4cc]"
-              : "text-gray-400"
-          }`}
-        >
-          <Users className="w-5.5 h-5.5 text-black" />
-          <span className="text-[9px] uppercase tracking-wider font-extrabold mt-1">Posts</span>
-        </button>
 
         <button
           onClick={() => {

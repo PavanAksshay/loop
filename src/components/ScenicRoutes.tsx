@@ -1,15 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MapPin, Navigation, ThumbsUp, Plus, Send, X, Compass, Image as ImageIcon, Trash2, CalendarClock, Sparkles, Check, Loader2, RotateCcw } from "lucide-react";
-import { Route } from "../types";
+import { MapPin, ThumbsUp, Plus, Send, X, Image as ImageIcon, Trash2, Globe, Lock, ShieldCheck } from "lucide-react";
+import { Route, PostVisibility } from "../types";
 import { uploadImage } from "../lib/storage";
-import { rephraseText } from "../lib/aiRephrase";
 
 /** Metrics carried over from a finished session into the Post Trail form. */
 export interface TrailPrefill {
   distanceKm: number;
   elevationGainM: number;
   estimatedTimeMin: number;
-  category?: "Walking" | "Jogging" | "Sprinting";
+  category?: "Walking" | "Jogging";
 }
 
 interface ScenicRoutesProps {
@@ -20,7 +19,6 @@ interface ScenicRoutesProps {
   showPostForm: boolean;
   onClosePostForm: () => void;
   onOpenPostForm?: () => void;
-  onScheduleTrail?: (route: Route) => void;
   /** When set, distance/elevation/time come from a completed session. */
   prefill?: TrailPrefill | null;
   /** Signed-in user id — namespaces uploads in Supabase Storage. */
@@ -35,13 +33,12 @@ export default function ScenicRoutes({
   showPostForm,
   onClosePostForm,
   onOpenPostForm,
-  onScheduleTrail,
   prefill,
   userId,
   currentUserName,
   onNotify,
 }: ScenicRoutesProps) {
-  const [activeTab, setActiveTab] = useState<"Latest Feeds" | "For You" | "All">("Latest Feeds");
+  const [activeTab, setActiveTab] = useState<"Latest Feeds" | "For You" | "All" | "Walking" | "Jogging">("Latest Feeds");
 
   const [likes, setLikes] = useState<Record<string, number>>({
     "route-1": 54,
@@ -53,52 +50,13 @@ export default function ScenicRoutes({
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [category, setCategory] = useState<"Walking" | "Jogging" | "Sprinting">("Walking");
+  const [category, setCategory] = useState<"Walking" | "Jogging">("Walking");
   const [distanceKm, setDistanceKm] = useState("5.8");
   const [elevationGainM, setElevationGainM] = useState("180");
   const [durationMin, setDurationMin] = useState("50");
   const [review, setReview] = useState("");
-  // "Generate with AI" state for the description box (local model, accept/reject).
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  /** AI suggestion awaiting accept/reject; null when there's nothing pending. */
-  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
-  const [aiMeta, setAiMeta] = useState<{ device: string; tookMs: number } | null>(null);
+  const [visibility, setVisibility] = useState<PostVisibility>("PUBLIC");
 
-  const handleGenerateWithAI = async () => {
-    const source = review.trim();
-    if (!source) {
-      setAiError("Write a short description first, then let AI polish it.");
-      return;
-    }
-    setAiBusy(true);
-    setAiError(null);
-    setAiSuggestion(null);
-    try {
-      const result = await rephraseText(source);
-      if (result.rephrased && result.rephrased !== source) {
-        setAiSuggestion(result.rephrased);
-        setAiMeta({ device: result.device, tookMs: result.took_ms });
-      } else {
-        setAiError("The model returned the same text — try adding a bit more detail.");
-      }
-    } catch (err: any) {
-      setAiError(err?.message || "Could not reach the AI server.");
-    } finally {
-      setAiBusy(false);
-    }
-  };
-
-  const acceptAiSuggestion = () => {
-    if (aiSuggestion) setReview(aiSuggestion);
-    setAiSuggestion(null);
-    setAiMeta(null);
-  };
-
-  const rejectAiSuggestion = () => {
-    setAiSuggestion(null);
-    setAiMeta(null);
-  };
   const [pathImage, setPathImage] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -149,7 +107,7 @@ export default function ScenicRoutes({
 
     const fallbackImage = `https://images.unsplash.com/photo-1511497584788-8767610419ea?auto=format&fit=crop&w=800&q=80`;
 
-    const createdRoute = onPostRoute({
+    onPostRoute({
       name,
       location,
       category,
@@ -159,34 +117,45 @@ export default function ScenicRoutes({
       rating: 4.9,
       image: pathImage || fallbackImage,
       author: {
-        name: "Trail Explorer",
+        name: currentUserName || "Trail Explorer",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
       },
       review: review || "Scenic outdoor route with great footpaths and beautiful surroundings!",
       reviewTime: "Just now",
       lat: 50 + Math.random() * 20,
       lng: 40 + Math.random() * 20,
+      visibility,
     });
 
-    if (createdRoute && onScheduleTrail) {
-      onNotify?.("Trail created — you can now schedule a post for it.", "success");
-      onScheduleTrail(createdRoute);
-    }
+    onNotify?.(
+      visibility === "PRIVATE"
+        ? "🔒 Saved privately to your feed."
+        : "🌐 Published to community feed!",
+      "success"
+    );
 
     setName("");
     setLocation("");
     setReview("");
+    setVisibility("PUBLIC");
     setPathImage(null);
     onClosePostForm();
   };
 
   const displayedRoutes = routes.filter((route) => {
-    if (activeTab === "All") return true;
+    // If route is marked private, only the author can see it
+    if (route.visibility === "PRIVATE") {
+      if (!currentUserName || route.author.name.toLowerCase() !== currentUserName.toLowerCase()) {
+        return false;
+      }
+    }
+
+    if (activeTab === "All" || activeTab === "Latest Feeds") return true;
     if (activeTab === "For You") {
       if (!currentUserName) return true;
       return route.author.name.toLowerCase() === currentUserName.toLowerCase();
     }
-    return true;
+    return route.category === activeTab;
   });
 
   return (
@@ -214,11 +183,11 @@ export default function ScenicRoutes({
 
       {/* Filter Tabs — text, underlined, matches the top nav's own convention */}
       <div className="flex gap-7 overflow-x-auto no-scrollbar max-w-full">
-        {["All", "Walking", "Jogging", "Sprinting"].map((tab) => (
+        {["Latest Feeds", "For You", "All", "Walking", "Jogging"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
-            className={`pb-2 -mb-px border-b-2 text-xs font-black uppercase tracking-wider transition-colors shrink-0 whitespace-nowrap ${
+            className={`pb-2 -mb-px border-b-2 text-xs font-black uppercase tracking-wider transition-colors shrink-0 ${
               activeTab === tab
                 ? "text-black border-black"
                 : "text-gray-400 border-transparent hover:text-gray-700"
@@ -229,45 +198,47 @@ export default function ScenicRoutes({
         ))}
       </div>
 
-      {/* Post Route Form */}
+      {/* Post Trail Form Overlay / Card */}
       {showPostForm && (
-        <div className="p-6 relative overflow-hidden border border-black/30 animate-fadeIn">
-          <button
-            onClick={onClosePostForm}
-            className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 transition-transform"
-          >
-            <X className="w-5 h-5 text-black" />
-          </button>
-
-          <h2 className="font-headline text-base font-extrabold uppercase tracking-wider text-[var(--wb-text)] mb-1 flex items-center gap-2">
-            <Compass className="w-5 h-5 text-black" />
-            <span>Share a New Scenic Route</span>
-          </h2>
-          <p className="text-[12px] text-slate-600 font-medium mb-4">
-            {fromSession
-              ? "Distance, elevation and time are filled in from your session — just add the details."
-              : "Tell the community about a route worth walking."}
-          </p>
+        <div className="border border-black/30 bg-[#f8f1e3] p-6 shadow-sm animate-fadeIn">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h2 className="font-headline text-xl font-black text-[var(--wb-text)] uppercase tracking-tight">
+                {fromSession ? "Post Session as Trail" : "Share a Scenic Trail"}
+              </h2>
+              <p className="text-xs text-slate-500">
+                {fromSession
+                  ? "Metrics from your completed workout are pre-filled below. Set visibility and description to share."
+                  : "Help others discover great walking and running routes in your city"}
+              </p>
+            </div>
+            <button
+              onClick={onClosePostForm}
+              className="text-slate-400 hover:text-slate-700 transition-colors p-1"
+            >
+              <X className="w-5 h-5 text-black" />
+            </button>
+          </div>
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] text-slate-600 uppercase font-extrabold mb-1.5">
-                  Trail / Route Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Cubbon Park Glasshouse Circuit"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
-                />
-              </div>
+            <div>
+              <label className="block text-[10px] text-slate-600 uppercase font-extrabold mb-1.5">
+                Trail / Route Name
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Cubbon Park Bamboo Grove Circuit"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+              />
+            </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[10px] text-slate-600 uppercase font-extrabold mb-1.5">
-                  Location
+                  Location (City / Area)
                 </label>
                 <input
                   type="text"
@@ -275,27 +246,75 @@ export default function ScenicRoutes({
                   placeholder="e.g. Cubbon Park, Bengaluru"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+                  className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-[10px] text-slate-600 uppercase font-extrabold mb-1.5">
-                  Category
+                  Activity Category
                 </label>
                 <select
                   value={category}
+                  disabled={fromSession}
                   onChange={(e) => setCategory(e.target.value as any)}
-                  className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+                  className={`w-full border rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
+                    fromSession
+                      ? "bg-black/5 border-black/15 cursor-not-allowed"
+                      : "bg-white/5 border-[var(--wb-line)]"
+                  }`}
                 >
                   <option value="Walking">Walking</option>
                   <option value="Jogging">Jogging</option>
-                  <option value="Sprinting">Sprinting</option>
                 </select>
               </div>
+            </div>
 
+            {/* Visibility Selector: Public vs Private */}
+            <div>
+              <label className="block text-[10px] text-slate-600 uppercase font-extrabold mb-1.5">
+                Feed Visibility
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setVisibility("PUBLIC")}
+                  className={`flex items-start gap-3 p-3 text-left border rounded-xl transition-all ${
+                    visibility === "PUBLIC"
+                      ? "border-black bg-black text-white shadow-sm"
+                      : "border-[var(--wb-line)] bg-white/50 text-[var(--wb-text)] hover:border-black/50"
+                  }`}
+                >
+                  <Globe className={`w-4 h-4 mt-0.5 shrink-0 ${visibility === "PUBLIC" ? "text-white" : "text-black"}`} />
+                  <div>
+                    <div className="text-xs font-black uppercase tracking-wider">Public</div>
+                    <div className={`text-[11px] mt-0.5 ${visibility === "PUBLIC" ? "text-white/80" : "text-gray-500"}`}>
+                      Visible to everyone in the community feed
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setVisibility("PRIVATE")}
+                  className={`flex items-start gap-3 p-3 text-left border rounded-xl transition-all ${
+                    visibility === "PRIVATE"
+                      ? "border-black bg-black text-white shadow-sm"
+                      : "border-[var(--wb-line)] bg-white/50 text-[var(--wb-text)] hover:border-black/50"
+                  }`}
+                >
+                  <Lock className={`w-4 h-4 mt-0.5 shrink-0 ${visibility === "PRIVATE" ? "text-white" : "text-black"}`} />
+                  <div>
+                    <div className="text-xs font-black uppercase tracking-wider">Private</div>
+                    <div className={`text-[11px] mt-0.5 ${visibility === "PRIVATE" ? "text-white/80" : "text-gray-500"}`}>
+                      Only visible to you on your personal feed
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="block text-[10px] text-slate-600 uppercase font-extrabold mb-1.5">
                   Distance (km)
@@ -353,26 +372,9 @@ export default function ScenicRoutes({
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-[10px] text-slate-600 uppercase font-extrabold">
-                  Route Atmosphere &amp; Review
-                </label>
-                {/* Generate with AI — polishes the description via the local model */}
-                <button
-                  type="button"
-                  onClick={handleGenerateWithAI}
-                  disabled={aiBusy}
-                  className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border border-black/40 bg-black/5 text-[var(--wb-text)] hover:bg-black/10 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Rephrase with the local AI model"
-                >
-                  {aiBusy ? (
-                    <Loader2 className="w-3 h-3 animate-spin text-black" />
-                  ) : (
-                    <Sparkles className="w-3 h-3 fill-current text-black" />
-                  )}
-                  <span>{aiBusy ? "Generating…" : "Generate with AI"}</span>
-                </button>
-              </div>
+              <label className="block text-[10px] text-slate-600 uppercase font-extrabold mb-1.5">
+                Route Atmosphere &amp; Review
+              </label>
               <textarea
                 required
                 placeholder="Share details about the terrain, greenery, track quality, or ideal time for this route..."
@@ -381,60 +383,6 @@ export default function ScenicRoutes({
                 rows={3}
                 className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
               />
-
-              {aiError && (
-                <p className="text-[10px] text-red-600 font-semibold mt-1.5 leading-relaxed">
-                  {aiError}
-                </p>
-              )}
-
-              {/* AI suggestion — accept to replace, reject to keep the original */}
-              {aiSuggestion && (
-                <div className="mt-2 rounded-xl border border-black/15 bg-black/[0.03] overflow-hidden animate-fadeIn">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-black/30 bg-black/5">
-                    <Sparkles className="w-3 h-3 text-black fill-current" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--wb-text)]">
-                      AI Suggestion
-                    </span>
-                    {aiMeta && (
-                      <span className="ml-auto text-[9px] text-slate-500 font-mono">
-                        {aiMeta.device} · {aiMeta.tookMs}ms
-                      </span>
-                    )}
-                  </div>
-                  <p className="px-3 py-2.5 text-xs text-[var(--wb-text)] leading-relaxed">
-                    {aiSuggestion}
-                  </p>
-                  <div className="flex gap-2 px-3 pb-3">
-                    <button
-                      type="button"
-                      onClick={acceptAiSuggestion}
-                      className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg bg-black text-white active:scale-95 transition-all"
-                    >
-                      <Check className="w-3.5 h-3.5 stroke-[3] text-white" />
-                      <span>Use this</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={rejectAiSuggestion}
-                      className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg bg-white/5 border border-[var(--wb-line)] text-[var(--wb-text)] hover:bg-black/5 active:scale-95 transition-all"
-                    >
-                      <X className="w-3.5 h-3.5 text-black" />
-                      <span>Keep mine</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleGenerateWithAI}
-                      disabled={aiBusy}
-                      className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg bg-white/5 border border-[var(--wb-line)] text-slate-600 hover:bg-black/5 active:scale-95 transition-all disabled:opacity-50"
-                      title="Generate another version"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5 text-black" />
-                      <span>Retry</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Route / path photo */}
@@ -494,10 +442,16 @@ export default function ScenicRoutes({
             <button
               type="submit"
               disabled={uploadingImage}
-              className="w-full bg-black text-white font-headline font-black text-xs py-3 rounded-xl uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50"
+              className="w-full bg-black text-white font-headline font-black text-xs py-3 rounded-xl uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50 hover:bg-neutral-800 transition-colors"
             >
               <Send className="w-4 h-4 text-white" />
-              <span>{uploadingImage ? "Uploading image…" : "Post Trail to Feed"}</span>
+              <span>
+                {uploadingImage
+                  ? "Uploading image…"
+                  : visibility === "PRIVATE"
+                  ? "Save Private Session"
+                  : "Post Trail to Feed"}
+              </span>
             </button>
           </form>
         </div>
@@ -505,115 +459,127 @@ export default function ScenicRoutes({
 
       {/* Feed — a divided list of full-bleed articles, not a stack of cards */}
       <div className="divide-y divide-black/15">
-        {displayedRoutes.map((route) => {
-          const formatDuration = (min: number) => {
-            const h = Math.floor(min / 60);
-            const m = min % 60;
-            return h > 0 ? `${h}:${m.toString().padStart(2, "0")}h` : `${m}m`;
-          };
+        {displayedRoutes.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 text-sm font-medium">
+            No routes found in this category.
+          </div>
+        ) : (
+          displayedRoutes.map((route) => {
+            const formatDuration = (min: number) => {
+              const h = Math.floor(min / 60);
+              const m = min % 60;
+              return h > 0 ? `${h}:${m.toString().padStart(2, "0")}h` : `${m}m`;
+            };
 
-          return (
-            <article key={route.id} className="group py-10 first:pt-0">
-              {/* Image — full-bleed, sharp corners */}
-              <div className="relative h-64 w-full overflow-hidden">
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                  style={{ backgroundImage: `url('${route.image}')` }}
-                />
-                <div className="absolute inset-0 scenic-gradient" />
+            const isPrivate = route.visibility === "PRIVATE";
 
-                <div className="absolute top-4 left-4 bg-black/80 px-2.5 py-1 text-[11px] uppercase tracking-widest font-black text-white">
-                  {route.category}
-                </div>
-
-                <div className="on-image absolute bottom-4 left-4 right-4">
-                  <h2 className="font-headline text-2xl font-black text-white drop-shadow-lg tracking-tight uppercase italic leading-tight">
-                    {route.name}
-                  </h2>
-                  <div className="flex items-center gap-1.5 text-[11px] text-white font-bold uppercase tracking-widest mt-1">
-                    <MapPin className="w-3.5 h-3.5 text-black" />
-                    <span>{route.location}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Specs & Review — plain composition, no boxed sub-cards */}
-              <div className="pt-5 space-y-5">
-                <div className="grid grid-cols-3 divide-x divide-black/20">
-                  <div className="pr-4">
-                    <div className="text-[10px] text-gray-500 uppercase font-black tracking-wider">
-                      Distance
-                    </div>
-                    <div className="font-headline text-xl font-black text-[var(--wb-text)]">
-                      {route.distanceKm}
-                      <span className="text-xs font-bold text-gray-500 ml-0.5">km</span>
-                    </div>
-                  </div>
-
-                  <div className="px-4">
-                    <div className="text-[10px] text-gray-500 uppercase font-black tracking-wider">
-                      Elev. Gain
-                    </div>
-                    <div className="font-headline text-xl font-black text-[var(--wb-text)]">
-                      {route.elevationGainM}
-                      <span className="text-xs font-bold text-gray-500 ml-0.5">m</span>
-                    </div>
-                  </div>
-
-                  <div className="pl-4">
-                    <div className="text-[10px] text-gray-500 uppercase font-black tracking-wider">
-                      TIME
-                    </div>
-                    <div className="font-headline text-xl font-black text-[var(--wb-text)]">
-                      {formatDuration(route.estimatedTimeMin)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Review — a pull-quote, not a bordered testimonial box */}
-                <div className="flex gap-3.5 items-start border-t border-black/15 pt-4">
+            return (
+              <article key={route.id} className="group py-10 first:pt-0">
+                {/* Image — full-bleed, sharp corners */}
+                <div className="relative h-64 w-full overflow-hidden">
                   <div
-                    className="w-10 h-10 rounded-full bg-cover bg-center shrink-0 border border-black/20"
-                    style={{ backgroundImage: `url('${route.author.avatar}')` }}
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                    style={{ backgroundImage: `url('${route.image}')` }}
                   />
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-headline text-xs font-black text-[var(--wb-text)]">{route.author.name}</span>
-                      <span className="text-[10px] text-gray-500 font-bold">{route.reviewTime}</span>
+                  <div className="absolute inset-0 scenic-gradient" />
+
+                  <div className="absolute top-4 left-4 flex items-center gap-2">
+                    <span className="bg-black/80 px-2.5 py-1 text-[11px] uppercase tracking-widest font-black text-white">
+                      {route.category}
+                    </span>
+                    {isPrivate ? (
+                      <span className="inline-flex items-center gap-1 bg-[#e74c3c] px-2.5 py-1 text-[11px] uppercase tracking-widest font-black text-white shadow-sm">
+                        <Lock className="w-3 h-3 text-white" />
+                        <span>Private</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 bg-black/60 px-2 py-1 text-[10px] uppercase tracking-widest font-black text-white/90">
+                        <Globe className="w-2.5 h-2.5 text-white/90" />
+                        <span>Public</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="on-image absolute bottom-4 left-4 right-4">
+                    <h2 className="font-headline text-2xl font-black text-white drop-shadow-lg tracking-tight uppercase italic leading-tight">
+                      {route.name}
+                    </h2>
+                    <div className="flex items-center gap-1.5 text-[11px] text-white font-bold uppercase tracking-widest mt-1">
+                      <MapPin className="w-3.5 h-3.5 text-black" />
+                      <span>{route.location}</span>
                     </div>
-                    <p className="text-xs text-gray-700 leading-relaxed italic font-medium">
-                      "{route.review}"
-                    </p>
                   </div>
                 </div>
 
-                {/* Action Row — like + rate */}
-                <div className="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-black/15">
-                  <button
-                    onClick={() => handleLike(route.id)}
-                    className={`flex items-center gap-2 text-xs font-bold transition-colors ${
-                      userLiked[route.id]
-                        ? "text-[var(--wb-text)]"
-                        : "text-gray-500 hover:text-[var(--wb-text)]"
-                    }`}
-                  >
-                    <ThumbsUp className={`w-4 h-4 text-black ${userLiked[route.id] ? "fill-current" : ""}`} />
-                    <span>{likes[route.id] || 0} Trail Likes</span>
-                  </button>
+                {/* Specs & Review — plain composition, no boxed sub-cards */}
+                <div className="pt-5 space-y-5">
+                  <div className="grid grid-cols-3 divide-x divide-black/20">
+                    <div className="pr-4">
+                      <div className="text-[10px] text-gray-500 uppercase font-black tracking-wider">
+                        Distance
+                      </div>
+                      <div className="font-headline text-xl font-black text-[var(--wb-text)]">
+                        {route.distanceKm}
+                        <span className="text-xs font-bold text-gray-500 ml-0.5">km</span>
+                      </div>
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={() => onScheduleTrail?.(route)}
-                    className="inline-flex items-center gap-2 border border-black bg-black px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-opacity hover:opacity-90"
-                  >
-                    <CalendarClock className="w-4 h-4 text-white" />
-                    <span>Use for Post</span>
-                  </button>
+                    <div className="px-4">
+                      <div className="text-[10px] text-gray-500 uppercase font-black tracking-wider">
+                        Elev. Gain
+                      </div>
+                      <div className="font-headline text-xl font-black text-[var(--wb-text)]">
+                        {route.elevationGainM}
+                        <span className="text-xs font-bold text-gray-500 ml-0.5">m</span>
+                      </div>
+                    </div>
+
+                    <div className="pl-4">
+                      <div className="text-[10px] text-gray-500 uppercase font-black tracking-wider">
+                        TIME
+                      </div>
+                      <div className="font-headline text-xl font-black text-[var(--wb-text)]">
+                        {formatDuration(route.estimatedTimeMin)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Review — a pull-quote, not a bordered testimonial box */}
+                  <div className="flex gap-3.5 items-start border-t border-black/15 pt-4">
+                    <div
+                      className="w-10 h-10 rounded-full bg-cover bg-center shrink-0 border border-black/20"
+                      style={{ backgroundImage: `url('${route.author.avatar}')` }}
+                    />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-headline text-xs font-black text-[var(--wb-text)]">{route.author.name}</span>
+                        <span className="text-[10px] text-gray-500 font-bold">{route.reviewTime}</span>
+                      </div>
+                      <p className="text-xs text-gray-700 leading-relaxed italic font-medium">
+                        "{route.review}"
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Row — like */}
+                  <div className="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-black/15">
+                    <button
+                      onClick={() => handleLike(route.id)}
+                      className={`flex items-center gap-2 text-xs font-bold transition-colors ${
+                        userLiked[route.id]
+                          ? "text-[var(--wb-text)]"
+                          : "text-gray-500 hover:text-[var(--wb-text)]"
+                      }`}
+                    >
+                      <ThumbsUp className={`w-4 h-4 text-black ${userLiked[route.id] ? "fill-current" : ""}`} />
+                      <span>{likes[route.id] || 0} Trail Likes</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })
+        )}
       </div>
     </div>
   );

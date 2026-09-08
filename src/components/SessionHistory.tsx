@@ -9,13 +9,12 @@ interface SessionHistoryProps {
   onPostTrail?: (log: ActivityLog) => void;
 }
 
-type Filter = "All" | "Walking" | "Jogging" | "Sprinting";
+type Filter = "All" | "Walking" | "Jogging";
 
 /** Accent keys resolved in CSS (.accent-chip[data-accent]) — all resolve to the ink colour in the single theme. */
 const TYPE_ACCENT: Record<string, string> = {
   Walking: "teal",
   Jogging: "cyan",
-  Sprinting: "lime",
 };
 
 /** "Today" / "Yesterday" / weekday / short date — reads more human than a raw ISO string. */
@@ -122,7 +121,7 @@ export default function SessionHistory({ logs, onDeleteLog, onPostTrail }: Sessi
           My Sessions
         </h1>
         <p className="text-sm text-gray-500 text-accent-serif">
-          Every walk, jog and sprint you've completed
+          Every walk and jog you've completed
         </p>
       </div>
 
@@ -246,7 +245,7 @@ export default function SessionHistory({ logs, onDeleteLog, onPostTrail }: Sessi
 
       {/* Filter tabs — text, underlined */}
       <div className="flex gap-7 overflow-x-auto no-scrollbar -mt-4">
-        {(["All", "Walking", "Jogging", "Sprinting"] as Filter[]).map((f) => (
+        {(["All", "Walking", "Jogging"] as Filter[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
