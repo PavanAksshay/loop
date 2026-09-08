@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import LoopLogo from "./LoopLogo";
 import {
@@ -22,6 +23,7 @@ import {
   Sun,
   ArrowRight,
   ArrowLeft,
+  ChevronLeft,
   Loader2,
   AlertTriangle,
   FileText,
@@ -370,6 +372,7 @@ export default function OnboardingFlow({
   onComplete,
   onSkipForUser,
 }: OnboardingFlowProps) {
+  const navigate = useNavigate();
   const user = session?.user ?? null;
 
   /* --- Which step are we on? Derived once, then user-driven. --- */
@@ -1752,9 +1755,19 @@ export default function OnboardingFlow({
     <div className="min-h-screen bg-[#f8f1e3] text-black flex flex-col relative font-sans overflow-x-hidden">
       {/* Header — identical language to the dashboard header */}
       <header className="sticky top-0 z-[100] bg-[#f8f1e3]/90 backdrop-blur-2xl border-b border-black/30 px-4 md:px-10 py-3.5 flex justify-between items-center shadow-lg">
-        <div className="font-logo text-[24px] md:text-[30px] font-normal text-[var(--wb-text)] uppercase tracking-wider flex items-center gap-2">
-          <LoopLogo size={28} />
-          <span>Loop</span>
+        <div className="flex items-center gap-3.5">
+          <button
+            onClick={() => navigate("/")}
+            title="Return to Choose Your Track"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-black/30 bg-[#f8f1e3] text-xs font-black uppercase tracking-wider text-black hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+            <span>Tracks</span>
+          </button>
+          <div className="font-logo text-[24px] md:text-[30px] font-normal text-[var(--wb-text)] uppercase tracking-wider flex items-center gap-2">
+            <LoopLogo size={28} />
+            <span>Loop</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5">

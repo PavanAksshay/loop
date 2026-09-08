@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Compass,
   MapPin,
@@ -319,6 +320,7 @@ interface AppProps {
 }
 
 export default function App({ profile, onSignOut }: AppProps = {}) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "feed" | "sessions" | "analytics"
   >("dashboard");
@@ -894,7 +896,15 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
       {/* Global Header */}
       <header className="sticky top-0 z-[100] bg-[#f8f1e3]/90 backdrop-blur-2xl border-b border-black/30 px-4 md:px-10 py-3.5 flex justify-between items-center shadow-sm">
         {/* Brand Logo & Title */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3.5 sm:gap-6">
+          <button
+            onClick={() => navigate("/")}
+            title="Return to Choose Your Track"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-black/30 bg-[#f8f1e3] text-xs font-black uppercase tracking-wider text-black hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+            <span>Tracks</span>
+          </button>
           <div 
             onClick={() => setActiveTab("dashboard")}
             className="cursor-pointer hover:opacity-85 active:scale-95 transition-all flex items-center"
