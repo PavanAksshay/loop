@@ -393,7 +393,7 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
                     <input type="radio" name="visibility" checked={visibility === option} onChange={() => setVisibility(option)} />
                     <span className="inline-flex items-center gap-1.5">
                       {option === "PUBLIC" ? <Eye className="w-3.5 h-3.5 text-black" /> : <Shield className="w-3.5 h-3.5 text-black" />}
-                      {option}
+                      {option === "PRIVATE" ? "PRIVATE (Followers & Following)" : "PUBLIC (Everyone)"}
                     </span>
                   </label>
                 ))}

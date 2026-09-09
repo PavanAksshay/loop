@@ -47,7 +47,7 @@ ALLOW_ORIGINS = os.environ.get("AI_ALLOW_ORIGINS", "*").split(",")
 if ENVIRONMENT == "production" and "*" in ALLOW_ORIGINS:
     raise ValueError(
         "AI_ALLOW_ORIGINS must be explicitly set in production (no wildcards). "
-        "Example: AI_ALLOW_ORIGINS=https://walkbuddy.app,https://staging.walkbuddy.app,http://localhost:3000"
+        "Example: AI_ALLOW_ORIGINS=https://walkbuddy.app,https://staging.walkbuddy.app,http://localhost:8000"
     )
 
 # ---- Rate limiting for AI rephrase endpoint (SECURITY_AUDIT.md) ----

@@ -7,7 +7,6 @@ import { GoogleGenAI } from "@google/genai";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
 
 app.use(express.json());
 
@@ -37,7 +36,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
   next();
 });
 
@@ -188,9 +187,27 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[WalkBuddy Server] Running on http://localhost:${PORT}`);
-  });
+  const initialPort = parseInt(process.env.PORT || "3000", 10);
+  const maxAttempts = 10;
+
+  function attemptListen(port: number, attempt = 0) {
+    const serverInstance = app.listen(port, "0.0.0.0", () => {
+      console.log(`\n🚀 [WalkBuddy Server] Ready!`);
+      console.log(`➜  Local:   http://localhost:${port}/`);
+      console.log(`➜  Network: http://0.0.0.0:${port}/\n`);
+    });
+
+    serverInstance.on("error", (err: any) => {
+      if (err.code === "EADDRINUSE" && attempt < maxAttempts) {
+        console.warn(`[WalkBuddy Server] Port ${port} is currently in use. Trying port ${port + 1}...`);
+        attemptListen(port + 1, attempt + 1);
+      } else {
+        console.error("[WalkBuddy Server] Failed to start server:", err);
+      }
+    });
+  }
+
+  attemptListen(initialPort);
 }
 
 startServer();

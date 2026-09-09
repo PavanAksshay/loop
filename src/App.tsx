@@ -299,7 +299,6 @@ const initialLogs: ActivityLog[] = [
     steps: 8200,
     durationMin: 52,
     paceMinPerKm: "8:07",
-    notes: "Evening outdoor walk along Cubbon Park trail.",
   },
   {
     id: "log-2",
@@ -309,7 +308,6 @@ const initialLogs: ActivityLog[] = [
     steps: 13100,
     durationMin: 58,
     paceMinPerKm: "6:18",
-    notes: "Pushed interval pacing along Lalbagh Glasshouse loop.",
   }
 ];
 
@@ -805,9 +803,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
       steps: activeSession.steps,
       durationMin: durationMins,
       paceMinPerKm,
-      notes: activeSession.route
-        ? `Completed scenic route: ${activeSession.route.name}`
-        : undefined,
     };
 
     setLogs([newLog, ...logs]);
@@ -1447,6 +1442,14 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               <div className="px-4 md:px-10 max-w-5xl mx-auto pt-4 space-y-6">
                 {/* Proximity matching — pairs two nearby users searching at
                     the same time and gives both the same meeting point. */}
+                <HubDashboard logs={logs} />
+
+                {/* Social graph — follow by @username. Following someone is
+                    what unlocks chat and location-status sharing. */}
+                <PeopleSearch userId={profile?.id} onNotify={pushToast} />
+
+                {/* Proximity matching — pairs two nearby users searching at
+                    the same time and gives both the same meeting point. */}
                 <BuddyMatch
                   userId={profile?.id}
                   userName={userName}
@@ -1454,12 +1457,6 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                   category={selectedCategory}
                   onNotify={pushToast}
                 />
-
-                {/* Social graph — follow by @username. Following someone is
-                    what unlocks chat and location-status sharing. */}
-                <PeopleSearch userId={profile?.id} onNotify={pushToast} />
-
-                <HubDashboard logs={logs} />
               </div>
             </div>
           )}

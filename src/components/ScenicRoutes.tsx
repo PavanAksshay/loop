@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MapPin, ThumbsUp, Plus, Send, X, Image as ImageIcon, Trash2, Globe, Lock, ShieldCheck } from "lucide-react";
+import { MapPin, ThumbsUp, Plus, Send, X, Image as ImageIcon, Trash2, Globe, Lock, ShieldCheck, Users } from "lucide-react";
 import { Route, PostVisibility } from "../types";
 import { uploadImage } from "../lib/storage";
+import { listFollowConnections } from "../lib/db";
 
 /** Metrics carried over from a finished session into the Post Trail form. */
 export interface TrailPrefill {
@@ -38,7 +39,7 @@ export default function ScenicRoutes({
   currentUserName,
   onNotify,
 }: ScenicRoutesProps) {
-  const [activeTab, setActiveTab] = useState<"Latest Feeds" | "For You" | "All" | "Walking" | "Jogging">("Latest Feeds");
+  const [activeTab, setActiveTab] = useState<string>("Latest Feeds");
 
   const [likes, setLikes] = useState<Record<string, number>>({
     "route-1": 54,
@@ -56,6 +57,27 @@ export default function ScenicRoutes({
   const [durationMin, setDurationMin] = useState("50");
   const [review, setReview] = useState("");
   const [visibility, setVisibility] = useState<PostVisibility>("PUBLIC");
+  const [connectedUsernames, setConnectedUsernames] = useState<Set<string>>(new Set());
+
+  // Load followers and following connections to filter private feed posts
+  useEffect(() => {
+    if (!userId) return;
+    Promise.all([
+      listFollowConnections("following").catch(() => []),
+      listFollowConnections("followers").catch(() => []),
+    ]).then(([fol, req]) => {
+      const names = new Set<string>();
+      fol.forEach((c) => {
+        if (c.username) names.add(c.username.toLowerCase().replace(/^@/, ""));
+        if (c.full_name) names.add(c.full_name.toLowerCase());
+      });
+      req.forEach((c) => {
+        if (c.username) names.add(c.username.toLowerCase().replace(/^@/, ""));
+        if (c.full_name) names.add(c.full_name.toLowerCase());
+      });
+      setConnectedUsernames(names);
+    });
+  }, [userId]);
 
   const [pathImage, setPathImage] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -129,7 +151,7 @@ export default function ScenicRoutes({
 
     onNotify?.(
       visibility === "PRIVATE"
-        ? "🔒 Saved privately to your feed."
+        ? "🔒 Shared to followers & following in the feed."
         : "🌐 Published to community feed!",
       "success"
     );
@@ -143,18 +165,21 @@ export default function ScenicRoutes({
   };
 
   const displayedRoutes = routes.filter((route) => {
-    // If route is marked private, only the author can see it
+    // If route is marked private, it is visible to:
+    // 1. The author
+    // 2. People the author follows, or followers of the author (connected users)
     if (route.visibility === "PRIVATE") {
-      if (!currentUserName || route.author.name.toLowerCase() !== currentUserName.toLowerCase()) {
+      const authorName = (route.author.name || "").toLowerCase().replace(/^@/, "");
+      const myName = (currentUserName || "").toLowerCase().replace(/^@/, "");
+      const isAuthor = myName && authorName === myName;
+      const isConnected = connectedUsernames.has(authorName);
+
+      if (!isAuthor && !isConnected) {
         return false;
       }
     }
 
     if (activeTab === "All" || activeTab === "Latest Feeds") return true;
-    if (activeTab === "For You") {
-      if (!currentUserName) return true;
-      return route.author.name.toLowerCase() === currentUserName.toLowerCase();
-    }
     return route.category === activeTab;
   });
 
@@ -164,7 +189,7 @@ export default function ScenicRoutes({
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-black/30">
         <div className="space-y-1.5">
           <h1 className="font-headline text-4xl md:text-5xl font-black text-[var(--wb-text)] italic tracking-tight uppercase leading-none">
-            Scenic Routes
+            Community Trails
           </h1>
           <p className="text-sm text-gray-500 text-accent-serif max-w-md">
             Popular walking, jogging, and outdoor routes shared by the community
@@ -183,7 +208,7 @@ export default function ScenicRoutes({
 
       {/* Filter Tabs — text, underlined, matches the top nav's own convention */}
       <div className="flex gap-7 overflow-x-auto no-scrollbar max-w-full">
-        {["Latest Feeds", "For You", "All", "Walking", "Jogging"].map((tab) => (
+        {["Latest Feeds", "All", "Walking", "Jogging"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -305,9 +330,9 @@ export default function ScenicRoutes({
                 >
                   <Lock className={`w-4 h-4 mt-0.5 shrink-0 ${visibility === "PRIVATE" ? "text-white" : "text-black"}`} />
                   <div>
-                    <div className="text-xs font-black uppercase tracking-wider">Private</div>
+                    <div className="text-xs font-black uppercase tracking-wider">Private (Followers & Following)</div>
                     <div className={`text-[11px] mt-0.5 ${visibility === "PRIVATE" ? "text-white/80" : "text-gray-500"}`}>
-                      Only visible to you on your personal feed
+                      Visible in feed only to people you follow and your followers
                     </div>
                   </div>
                 </button>

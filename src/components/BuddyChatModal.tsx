@@ -6,66 +6,162 @@ import {
   Search,
   Check,
   CheckCheck,
-  Phone,
-  Video,
-  MapPin,
-  Navigation,
-  Clock,
-  UserCheck,
-  Users,
-  Sparkles,
   ChevronLeft,
-  Compass,
   Footprints,
-  Flame,
-  ShieldCheck,
-  Radio,
-  Share2,
-  Calendar,
   Smile,
   Zap,
-  Tag
 } from "lucide-react";
 import { ChatThread, ChatMessage } from "../types";
 
-// Initial Loop DM threads with found walking buddies
+// WhatsApp-style message ticks indicator
+function WhatsAppStatusTicks({ status }: { status?: "sent" | "delivered" | "read" }) {
+  if (status === "read") {
+    return (
+      <span className="inline-flex items-center" title="Read">
+        <CheckCheck className="w-3.5 h-3.5 text-[#34B7F1] stroke-[2.5]" />
+      </span>
+    );
+  }
+  if (status === "delivered") {
+    return (
+      <span className="inline-flex items-center" title="Delivered">
+        <CheckCheck className="w-3.5 h-3.5 text-gray-400 stroke-[2]" />
+      </span>
+    );
+  }
+  // status === "sent"
+  return (
+    <span className="inline-flex items-center" title="Sent">
+      <Check className="w-3.5 h-3.5 text-gray-400 stroke-[2]" />
+    </span>
+  );
+}
+
+// Complete WhatsApp Emoji Categories
+const EMOJI_CATEGORIES = [
+  {
+    id: "smileys",
+    name: "Smileys",
+    icon: "😀",
+    emojis: [
+      "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "🥹", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍",
+      "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🥸", "🤩",
+      "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭",
+      "😮‍💨", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔",
+      "🫣", "🫢", "🫡", "🤫", "🫠", "🤥", "😶", "😶‍🌫️", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮",
+      "😲", "🥱", "😴", "🤤", "😪", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑",
+      "🤠", "😈", "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️", "👽", "👾", "🤖", "🎃"
+    ],
+  },
+  {
+    id: "people",
+    name: "People",
+    icon: "👋",
+    emojis: [
+      "👋", "🤚", "🖐️", "✋", "🖖", "🫱", "🫲", "🫳", "🫴", "👌", "🤌", "🤏", "✌️", "🤞", "🫰", "🤟",
+      "🤘", "🤙", "👈", "👉", "👆", "👇", "☝️", "🫵", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌",
+      "🫶", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻", "👃",
+      "🧠", "🫀", "🫁", "🦷", "🦴", "👀", "👁️", "👅", "👄", "👶", "🧒", "👦", "👧", "🧑", "👱", "👨",
+      "🧔", "👩", "🧓", "👴", "👵", "🚶", "🚶‍♂️", "🚶‍♀️", "🏃", "🏃‍♂️", "🏃‍♀️", "💃", "🕺", "👫", "👭", "👬"
+    ],
+  },
+  {
+    id: "nature",
+    name: "Nature",
+    icon: "🐶",
+    emojis: [
+      "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵",
+      "🐒", "🦍", "🦧", "🐕", "🐈", "🐎", "🦄", "🦓", "🦌", "🐂", "🐄", "🐖", "🐏", "🐑", "🐐", "🐪",
+      "🐫", "🦙", "🦒", "🐘", "🦏", "🦛", "🐿️", "🦔", "🦇", "🦅", "🦆", "🦉", "🦚", "🦜", "🌱", "🌿",
+      "☘️", "🍀", "🎍", "🪴", "🌴", "🌳", "🌲", "🍂", "🍁", "🍄", "🌾", "💐", "🌷", "🌹", "🌻", "🌼",
+      "🌸", "🌺", "🌞", "🌝", "🌛", "🌜", "🌙", "⭐", "🌟", "✨", "⚡", "🔥", "🌈", "☀️", "🌤️", "⛅",
+      "🌥️", "☁️", "🌦️", "🌧️", "⛈️", "🌩️", "🌨️", "❄️", "☃️", "⛄", "💨", "💧", "💦", "🌊"
+    ],
+  },
+  {
+    id: "food",
+    name: "Food",
+    icon: "🍎",
+    emojis: [
+      "🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥",
+      "🥝", "🍅", "🥑", "🥦", "🥬", "🥒", "🌶️", "🌽", "🥕", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞",
+      "🥖", "🥨", "🧀", "🥚", "🍳", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🌭", "🍔", "🍟", "🍕", "🥪",
+      "🥙", "🌮", "🌯", "🥗", "🥘", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🍤", "🍙", "🍚", "🍦",
+      "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "☕", "🫖", "🍵",
+      "🧃", "🥤", "🧋", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸", "🍹", "🍾"
+    ],
+  },
+  {
+    id: "activity",
+    name: "Activity",
+    icon: "⚽",
+    emojis: [
+      "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🏓", "🏸", "🏒", "🏏", "⛳", "🏹",
+      "🎣", "🥊", "🥋", "🎽", "🛹", "🛼", "🎿", "🏂", "🏋️", "🏋️‍♂️", "🏋️‍♀️", "🤸", "🤸‍♂️", "🤸‍♀️", "🧗",
+      "🧗‍♂️", "🧗‍♀️", "🧘", "🧘‍♂️", "🧘‍♀️", "🚴", "🚴‍♂️", "🚴‍♀️", "🚵", "🚵‍♂️", "🚵‍♀️", "🏊", "🏊‍♂️", "🏊‍♀️",
+      "🏆", "🥇", "🥈", "🥉", "🏅", "🎖️", "🎫", "🎭", "🎨", "🎬", "🎤", "🎧", "🎼", "🎹", "🥁", "🎷",
+      "🎺", "🎸", "🎯", "🎳", "🎮", "🎲", "🧩"
+    ],
+  },
+  {
+    id: "travel",
+    name: "Travel",
+    icon: "🚗",
+    emojis: [
+      "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🛴", "🚲",
+      "🛵", "🏍️", "🛺", "🚨", "🚔", "🚘", "🚖", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "✈️",
+      "🛫", "🛬", "💺", "🛰️", "🚀", "🛸", "🚁", "🛶", "⛵", "🚤", "🛳️", "⛴️", "🚢", "⚓", "🛟", "⛽",
+      "🚦", "🚥", "🗺️", "🗿", "🗽", "🗼", "🏰", "🏯", "🏟️", "🎡", "🎢", "🏖️", "🏝️", "🏜️", "🌋", "⛰️",
+      "🏔️", "🏕️", "⛺", "🏠", "🏡", "🏢", "🏬", "🏥", "🏦", "🏨", "🏫", "🏛️", "⛪", "🕌", "🛕", "🕍"
+    ],
+  },
+  {
+    id: "objects",
+    name: "Symbols",
+    icon: "💡",
+    emojis: [
+      "💡", "🔦", "🕯️", "📱", "📲", "💻", "⌨️", "🖥️", "📷", "📸", "📹", "🎥", "📺", "📻", "🎙️", "⏰",
+      "⏱️", "⏲️", "🕰️", "⏳", "📡", "🔋", "🔌", "💳", "💎", "⚖️", "🔧", "🔨", "🛠️", "⚙️", "🔒", "🔓",
+      "🔑", "🗝️", "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❤️‍🔥", "💕", "💞", "💓",
+      "💗", "💖", "💘", "💝", "💯", "💢", "💬", "🗨️", "🗯️", "💭", "💤", "🔔", "🔕", "📢", "🎵", "🎶",
+      "✔️", "☑️", "✅", "❌", "➕", "➖", "💲", "🚩", "🏁"
+    ],
+  },
+];
+
+// Initial Loop DM threads with usernames only
 export const INITIAL_CHAT_THREADS: ChatThread[] = [
   {
     id: "thread-1",
-    buddyName: "Rohan Verma",
+    buddyName: "@rohan_verma",
     buddyAvatar: "https://images.unsplash.com/photo-1543549790-8b5f4a028cfb?auto=format&fit=crop&w=300&q=80",
-    status: "Walking Now",
-    distanceStr: "0.3 km away",
-    meetupTrailName: "Lalbagh Morning Loop",
+    status: "online",
+    distanceStr: "",
+    meetupTrailName: "",
     unreadCount: 2,
-    lastMessage: "Hey, should we do 2 loops or 3 loops around the glasshouse?",
+    lastMessage: "Hey, should we do 2 loops or 3 loops around the trail?",
     lastMessageTime: "10:42 AM",
     messages: [
       {
         id: "m-1",
         sender: "buddy",
-        text: "Hey! Saw you joined my Lalbagh morning walk ping! 🌿",
+        text: "Hey! Glad we connected! 🌿",
         time: "10:30 AM",
         status: "read",
       },
       {
         id: "m-2",
         sender: "me",
-        text: "Yes! Super excited for tomorrow's 6:30 AM pace. I usually target 5.5 km/h.",
+        text: "Yes! Super excited for tomorrow's 6:30 AM pace.",
         time: "10:32 AM",
         status: "read",
       },
       {
         id: "m-3",
         sender: "buddy",
-        text: "Awesome, I'll be waiting near the North Gate glasshouse entry point. Look for a green jacket! 🧥",
+        text: "Awesome, I'll be waiting near the North Gate entry. Look for a green jacket! 🧥",
         time: "10:35 AM",
         status: "read",
-        attachment: {
-          type: "location",
-          title: "Lalbagh Glasshouse North Gate",
-          subtext: "GPS: 12.9507° N, 77.5848° E • Pace Match: 98%",
-        },
       },
       {
         id: "m-4",
@@ -77,7 +173,7 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
       {
         id: "m-5",
         sender: "buddy",
-        text: "Hey, should we do 2 loops or 3 loops around the glasshouse?",
+        text: "Hey, should we do 2 loops or 3 loops around the trail?",
         time: "10:42 AM",
         status: "read",
       },
@@ -85,33 +181,33 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-2",
-    buddyName: "Ananya M.",
+    buddyName: "@ananya_m",
     buddyAvatar: "https://images.unsplash.com/photo-1484406566174-9da000fda645?auto=format&fit=crop&w=300&q=80",
-    status: "Online",
-    distanceStr: "0.6 km away",
-    meetupTrailName: "Cubbon Park Stroll",
+    status: "online",
+    distanceStr: "",
+    meetupTrailName: "",
     unreadCount: 1,
-    lastMessage: "Saturday morning 7:00 AM works great for Cubbon Park!",
+    lastMessage: "Saturday morning 7:00 AM works great!",
     lastMessageTime: "Yesterday",
     messages: [
       {
         id: "m-201",
         sender: "me",
-        text: "Hi Ananya, thanks for connecting on Loop! Loved your Cubbon park route post.",
+        text: "Hi Ananya, thanks for connecting on Loop! Loved your park route post.",
         time: "Yesterday 4:15 PM",
         status: "read",
       },
       {
         id: "m-202",
         sender: "buddy",
-        text: "Hey there! Thanks! The bamboo grove section is so peaceful in the mornings. 🎋",
+        text: "Hey there! Thanks! That section is so peaceful in the mornings. 🎋",
         time: "Yesterday 4:20 PM",
         status: "read",
       },
       {
         id: "m-203",
         sender: "buddy",
-        text: "Saturday morning 7:00 AM works great for Cubbon Park!",
+        text: "Saturday morning 7:00 AM works great!",
         time: "Yesterday 4:22 PM",
         status: "read",
       },
@@ -119,33 +215,28 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-3",
-    buddyName: "Vikram Seth",
+    buddyName: "@vikram_seth",
     buddyAvatar: "https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&w=300&q=80",
-    status: "Nearby (200m)",
-    distanceStr: "200m away",
-    meetupTrailName: "Sankey Tank Morning Jog",
+    status: "offline",
+    distanceStr: "",
+    meetupTrailName: "",
     unreadCount: 0,
-    lastMessage: "Dropped a pin for 100m interval reps along the lake perimeter!",
+    lastMessage: "Dropped 100m interval reps along the perimeter!",
     lastMessageTime: "Jul 21",
     messages: [
       {
         id: "m-301",
         sender: "buddy",
-        text: "Yo buddy! I saw your profile in nearby WalkBuddies!",
+        text: "Yo buddy! Nice connecting with you on WalkBuddy!",
         time: "Jul 21 8:10 AM",
         status: "read",
       },
       {
         id: "m-302",
         sender: "buddy",
-        text: "Dropped a pin for 100m interval reps along the lake perimeter!",
+        text: "Dropped 100m interval reps along the perimeter!",
         time: "Jul 21 8:12 AM",
         status: "read",
-        attachment: {
-          type: "trail",
-          title: "Sankey Tank Jogging Circuit (3.2 km)",
-          subtext: "Interval Drills • High Intensity Pace",
-        },
       },
       {
         id: "m-303",
@@ -158,11 +249,11 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-4",
-    buddyName: "Karthik R.",
+    buddyName: "@karthik_r",
     buddyAvatar: "https://images.unsplash.com/photo-1564466809058-bf4114d55352?auto=format&fit=crop&w=300&q=80",
-    status: "Offline",
-    distanceStr: "1.2 km away",
-    meetupTrailName: "Indiranagar 100ft Rd Power Walk",
+    status: "offline",
+    distanceStr: "",
+    meetupTrailName: "",
     unreadCount: 0,
     lastMessage: "Great power walk session today! Hit 7,200 steps together!",
     lastMessageTime: "Jul 19",
@@ -185,19 +276,19 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-5",
-    buddyName: "Divya M.",
+    buddyName: "@divya_m",
     buddyAvatar: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=300&q=80",
-    status: "Online",
-    distanceStr: "0.5 km away",
-    meetupTrailName: "Koramangala 4th Block Jog",
+    status: "online",
+    distanceStr: "",
+    meetupTrailName: "",
     unreadCount: 0,
-    lastMessage: "Hi! Ready for tomorrow's morning jog near NGV perimeter?",
+    lastMessage: "Hi! Ready for tomorrow's morning jog near the park perimeter?",
     lastMessageTime: "Jul 18",
     messages: [
       {
         id: "m-501",
         sender: "buddy",
-        text: "Hi! Ready for tomorrow's morning jog near NGV perimeter?",
+        text: "Hi! Ready for tomorrow's morning jog near the park perimeter?",
         time: "Jul 18 6:00 PM",
         status: "read",
       },
@@ -223,6 +314,7 @@ export default function BuddyChatModal({
   const [inputText, setInputText] = useState("");
   const [filterCategory, setFilterCategory] = useState<"all" | "active" | "invites">("all");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [activeEmojiCategory, setActiveEmojiCategory] = useState("smileys");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeThread = chatThreads.find((t) => t.id === selectedThreadId);
@@ -231,11 +323,13 @@ export default function BuddyChatModal({
   useEffect(() => {
     if (!isOpen) {
       setSelectedThreadId(null);
+      setShowEmojiPicker(false);
     }
   }, [isOpen]);
 
   const handleCloseModal = () => {
     setSelectedThreadId(null);
+    setShowEmojiPicker(false);
     onClose();
   };
 
@@ -252,11 +346,10 @@ export default function BuddyChatModal({
   const filteredThreads = chatThreads.filter((t) => {
     const matchesSearch =
       t.buddyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.meetupTrailName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.lastMessage.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
-    if (filterCategory === "active") return t.status.includes("Walking") || t.status.includes("Online");
+    if (filterCategory === "active") return t.status.includes("online") || t.status.includes("Walking");
     if (filterCategory === "invites") return t.unreadCount > 0;
     return true;
   });
@@ -277,18 +370,19 @@ export default function BuddyChatModal({
     );
   };
 
-  // Handle sending a user message (NO auto-replies)
+  // Handle sending a user message with progressive WhatsApp ticks (sent -> delivered -> read)
   const handleSendMessage = (textToSend?: string) => {
     const finalMsg = textToSend || inputText;
     if (!finalMsg.trim() || !activeThread) return;
 
     const threadId = activeThread.id;
+    const msgId = `m-${Date.now()}`;
     const newMsg: ChatMessage = {
-      id: `m-${Date.now()}`,
+      id: msgId,
       sender: "me",
       text: finalMsg.trim(),
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      status: "delivered",
+      status: "sent",
     };
 
     onUpdateThreads((prev) =>
@@ -304,11 +398,45 @@ export default function BuddyChatModal({
     );
     setInputText("");
     setShowEmojiPicker(false);
+
+    // Realistic WhatsApp tick progression:
+    // 1.2s -> Delivered (double gray tick)
+    setTimeout(() => {
+      onUpdateThreads((prev) =>
+        prev.map((t) => {
+          if (t.id !== threadId) return t;
+          return {
+            ...t,
+            messages: t.messages.map((m) =>
+              m.id === msgId && m.status === "sent" ? { ...m, status: "delivered" as const } : m
+            ),
+          };
+        })
+      );
+    }, 1200);
+
+    // 2.8s -> Read (double blue tick)
+    setTimeout(() => {
+      onUpdateThreads((prev) =>
+        prev.map((t) => {
+          if (t.id !== threadId) return t;
+          return {
+            ...t,
+            messages: t.messages.map((m) =>
+              m.id === msgId ? { ...m, status: "read" as const } : m
+            ),
+          };
+        })
+      );
+    }, 2800);
   };
 
   const handleQuickChip = (chipText: string) => {
     handleSendMessage(chipText);
   };
+
+  const currentCategoryObj =
+    EMOJI_CATEGORIES.find((c) => c.id === activeEmojiCategory) || EMOJI_CATEGORIES[0];
 
   return (
     <div className="fixed inset-0 z-[1200] bg-black/40 backdrop-blur-xl flex items-center justify-center p-3 sm:p-5 md:p-8 animate-fadeIn select-none">
@@ -318,7 +446,7 @@ export default function BuddyChatModal({
         {/* ================= HEADER ================= */}
         <div className="p-4 bg-[var(--wb-card)] border-b border-[var(--wb-line)] flex items-center justify-between shrink-0">
           {activeThread ? (
-            /* Active Person's Chat Header */
+            /* Active Person's Chat Header - Username Only */
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
                 onClick={() => setSelectedThreadId(null)}
@@ -333,29 +461,22 @@ export default function BuddyChatModal({
                 src={activeThread.buddyAvatar}
                 alt={activeThread.buddyName}
                 referrerPolicy="no-referrer"
-                className="w-10 h-10 rounded-2xl object-cover border border-black/30 shrink-0"
+                className="w-10 h-10 rounded-full object-cover border border-black/20 shrink-0"
               />
 
               <div className="min-w-0 flex-1">
-                <h3 className="font-headline font-extrabold text-sm text-[var(--wb-text)] flex items-center gap-2 truncate">
-                  <span className="truncate">{activeThread.buddyName}</span>
-                  <span className="bg-[#f0e4cc] border border-black/30 text-black text-[9px] px-2 py-0.5 rounded-full font-bold shrink-0">
-                    {activeThread.meetupTrailName}
-                  </span>
+                <h3 className="font-headline font-extrabold text-sm text-[var(--wb-text)] truncate">
+                  {activeThread.buddyName.startsWith("@") ? activeThread.buddyName : `@${activeThread.buddyName}`}
                 </h3>
-                <p className="text-[10px] text-gray-500 flex items-center gap-1.5 font-mono truncate">
+                <p className="text-[10px] text-gray-500 flex items-center gap-1.5 font-mono">
                   <span
                     className={`w-2 h-2 rounded-full inline-block shrink-0 ${
-                      activeThread.status.includes("Walking")
-                        ? "bg-black"
-                        : activeThread.status.includes("Online")
-                        ? "bg-gray-500"
+                      activeThread.status === "online" || activeThread.status.includes("Walking")
+                        ? "bg-emerald-500"
                         : "bg-gray-300"
                     }`}
                   />
-                  <span>{activeThread.status}</span>
-                  <span>•</span>
-                  <span className="truncate">{activeThread.distanceStr}</span>
+                  <span className="capitalize">{activeThread.status === "online" ? "online" : "offline"}</span>
                 </p>
               </div>
             </div>
@@ -393,7 +514,7 @@ export default function BuddyChatModal({
                 <Search className="w-4 h-4 text-black absolute left-3" />
                 <input
                   type="text"
-                  placeholder="Search by name, trail, or message..."
+                  placeholder="Search by @username or message..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[var(--wb-surface)] text-xs text-[var(--wb-text)] placeholder-gray-400 pl-9 pr-3 py-2.5 rounded-xl border border-[var(--wb-line)] focus:outline-none focus:border-black"
@@ -404,7 +525,7 @@ export default function BuddyChatModal({
               <div className="flex items-center gap-2">
                 {[
                   { id: "all", label: `All Chats (${chatThreads.length})` },
-                  { id: "active", label: "Walking Now" },
+                  { id: "active", label: "Online" },
                   { id: "invites", label: "Unread" },
                 ].map((tab) => (
                   <button
@@ -442,39 +563,27 @@ export default function BuddyChatModal({
                         src={thread.buddyAvatar}
                         alt={thread.buddyName}
                         referrerPolicy="no-referrer"
-                        className="w-12 h-12 rounded-2xl object-cover border border-black/30 group-hover:border-black transition-colors"
+                        className="w-12 h-12 rounded-full object-cover border border-black/20 group-hover:border-black transition-colors"
                       />
                       <span
                         className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[var(--wb-surface)] ${
-                          thread.status.includes("Walking")
-                            ? "bg-black"
-                            : thread.status.includes("Online")
-                            ? "bg-gray-500"
+                          thread.status === "online" || thread.status.includes("Walking")
+                            ? "bg-emerald-500"
                             : "bg-gray-300"
                         }`}
                         title={thread.status}
                       />
                     </div>
 
-                    {/* Thread Info */}
+                    {/* Thread Info - Username Only */}
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <h4 className="font-headline font-bold text-sm text-[var(--wb-text)] truncate flex items-center gap-1.5">
-                          <span>{thread.buddyName}</span>
-                          <ShieldCheck className="w-3.5 h-3.5 text-black shrink-0" />
+                        <h4 className="font-headline font-bold text-sm text-[var(--wb-text)] truncate">
+                          {thread.buddyName.startsWith("@") ? thread.buddyName : `@${thread.buddyName}`}
                         </h4>
                         <span className="text-[10px] text-gray-500 shrink-0 font-mono">
                           {thread.lastMessageTime}
                         </span>
-                      </div>
-
-                      {/* Trail & Distance */}
-                      <div className="flex items-center gap-1.5 mb-1 text-[11px]">
-                        <MapPin className="w-3.5 h-3.5 text-black shrink-0" />
-                        <span className="text-black font-bold truncate">
-                          {thread.meetupTrailName}
-                        </span>
-                        <span className="text-gray-500 font-mono text-[10px]">• {thread.distanceStr}</span>
                       </div>
 
                       {/* Last Message */}
@@ -501,14 +610,6 @@ export default function BuddyChatModal({
             <div
               className="flex-1 p-4 md:p-6 overflow-y-auto space-y-3.5 custom-scrollbar relative"
             >
-              {/* Security Banner */}
-              <div className="mx-auto my-1 max-w-md bg-[var(--wb-card)] border border-[var(--wb-line)] text-gray-700 px-3.5 py-2 rounded-2xl text-[10px] text-center shadow-md flex items-center justify-center gap-2 font-medium">
-                <ShieldCheck className="w-4 h-4 text-black shrink-0" />
-                <span>
-                  Connected via Loop Outdoor GPS. Always meet in open public park areas!
-                </span>
-              </div>
-
               {/* Message Items */}
               {activeThread.messages.map((msg) => {
                 const isMe = msg.sender === "me";
@@ -527,45 +628,10 @@ export default function BuddyChatModal({
                       {/* Message Text */}
                       <p className="whitespace-pre-wrap">{msg.text}</p>
 
-                      {/* Optional Card Attachment */}
-                      {msg.attachment && (
-                        <div className="mt-2.5 p-3 rounded-2xl bg-black/5 border border-[var(--wb-line)] flex items-center justify-between gap-3 shadow-inner">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {msg.attachment.type === "location" ? (
-                              <MapPin className="w-5 h-5 text-black shrink-0" />
-                            ) : (
-                              <Navigation className="w-5 h-5 text-black shrink-0" />
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-[11px] font-bold text-[var(--wb-text)] truncate">{msg.attachment.title}</p>
-                              {msg.attachment.subtext && (
-                                <p className="text-[9px] text-gray-500 truncate">{msg.attachment.subtext}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => alert(`📍 Opening GPS navigation to ${msg.attachment?.title}...`)}
-                            className="bg-black text-white px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 shadow-md hover:scale-105 transition-transform"
-                          >
-                            Navigate
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Time & Status */}
-                      <div className="flex items-center justify-end gap-1 mt-1.5 text-[9px] opacity-70 font-mono">
+                      {/* Time & WhatsApp Status Ticks */}
+                      <div className="flex items-center justify-end gap-1.5 mt-1.5 text-[9px] opacity-75 font-mono">
                         <span>{msg.time}</span>
-                        {isMe && (
-                          <span title={msg.status === "read" ? "Read" : "Sent / Delivered"}>
-                            {msg.status === "read" ? (
-                              <CheckCheck className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                            ) : (
-                              <CheckCheck className="w-3.5 h-3.5 text-gray-400 stroke-[2.2]" />
-                            )}
-                          </span>
-                        )}
+                        {isMe && <WhatsAppStatusTicks status={msg.status} />}
                       </div>
                     </div>
                   </div>
@@ -574,18 +640,18 @@ export default function BuddyChatModal({
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Suggestion Chips */}
+            {/* Quick Suggestion Chips (Without location sharing) */}
             <div className="px-3 py-2 bg-[var(--wb-card)] border-t border-[var(--wb-line)] flex items-center gap-2 overflow-x-auto no-scrollbar">
               <span className="text-[9px] text-gray-500 font-black uppercase shrink-0 flex items-center gap-1">
                 <Zap className="w-3 h-3 text-black" />
                 <span>Quick:</span>
               </span>
               {[
-                "📍 Share My GPS Spot",
                 "🗓️ Meet 6:30 AM Tomorrow",
-                "🥾 Suggest 5 km Loop",
+                "🥾 Ready for 5 km loop?",
                 "☕ Post-Walk Coffee?",
                 "👟 Ready to Start!",
+                "👍 Sounds good!",
               ].map((chip) => (
                 <button
                   key={chip}
@@ -597,23 +663,46 @@ export default function BuddyChatModal({
               ))}
             </div>
 
-            {/* Emoji Picker Bar */}
+            {/* WhatsApp Emoji Keyboard Picker Popover */}
             {showEmojiPicker && (
-              <div className="px-3 py-2 bg-[var(--wb-surface)] border-t border-[var(--wb-line)] flex items-center gap-3 overflow-x-auto">
-                {["🚶‍♂️", "🏃‍♀️", "🍃", "📍", "👟", "☕", "🔥", "💪", "✨", "🌳", "👍", "👋"].map(
-                  (emoji) => (
+              <div className="bg-[var(--wb-card)] border-t border-[var(--wb-line)] flex flex-col h-56 animate-fadeIn">
+                {/* Category Switcher Tabs */}
+                <div className="flex items-center justify-around border-b border-[var(--wb-line)] px-2 py-1.5 shrink-0 bg-[var(--wb-surface)]">
+                  {EMOJI_CATEGORIES.map((cat) => (
                     <button
-                      key={emoji}
-                      onClick={() => {
-                        setInputText((prev) => prev + emoji);
-                        setShowEmojiPicker(false);
-                      }}
-                      className="text-lg hover:scale-125 transition-transform p-1"
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setActiveEmojiCategory(cat.id)}
+                      className={`text-base p-1.5 rounded-xl transition-transform ${
+                        activeEmojiCategory === cat.id
+                          ? "bg-black/10 scale-110"
+                          : "opacity-60 hover:opacity-100 hover:scale-105"
+                      }`}
+                      title={cat.name}
                     >
-                      {emoji}
+                      {cat.icon}
                     </button>
-                  )
-                )}
+                  ))}
+                </div>
+
+                {/* Emoji Grid */}
+                <div className="flex-1 p-3 overflow-y-auto custom-scrollbar">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-2">
+                    {currentCategoryObj.name}
+                  </div>
+                  <div className="grid grid-cols-8 sm:grid-cols-10 gap-2">
+                    {currentCategoryObj.emojis.map((emoji, idx) => (
+                      <button
+                        key={`${emoji}-${idx}`}
+                        type="button"
+                        onClick={() => setInputText((prev) => prev + emoji)}
+                        className="text-xl p-1 rounded-lg hover:bg-black/10 active:scale-125 transition-transform flex items-center justify-center"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -622,19 +711,12 @@ export default function BuddyChatModal({
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-2 rounded-xl text-gray-600 hover:text-black hover:bg-black/5 transition-colors"
+                className={`p-2 rounded-xl transition-colors ${
+                  showEmojiPicker ? "bg-black text-white" : "text-gray-600 hover:text-black hover:bg-black/5"
+                }`}
                 title="Emojis"
               >
-                <Smile className="w-5 h-5 text-black" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickChip("📍 GPS Pin: Trail Meetup Entrance")}
-                className="p-2 rounded-xl text-gray-600 hover:text-black hover:bg-black/5 transition-colors"
-                title="Share GPS Location"
-              >
-                <MapPin className="w-5 h-5 text-black" />
+                <Smile className="w-5 h-5" />
               </button>
 
               <input
@@ -670,4 +752,5 @@ export default function BuddyChatModal({
     </div>
   );
 }
+
 

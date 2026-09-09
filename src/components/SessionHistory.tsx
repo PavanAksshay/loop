@@ -327,12 +327,6 @@ export default function SessionHistory({ logs, onDeleteLog, onPostTrail }: Sessi
                   </div>
                 </div>
 
-                {log.notes && (
-                  <p className="text-[13px] text-gray-700 italic leading-relaxed">
-                    "{log.notes}"
-                  </p>
-                )}
-
                 <div className="flex items-end justify-between gap-6">
                   <div className="shrink-0 flex items-center gap-2.5">
                     <Compass className="w-6 h-6 text-black" />

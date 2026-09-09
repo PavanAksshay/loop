@@ -32,7 +32,7 @@ interface BuddyMatchProps {
 
 type Phase = "idle" | "locating" | "searching" | "matched" | "error";
 
-const RADIUS_OPTIONS = [1, 3, 5, 10];
+const RADIUS_OPTIONS = [0.5, 1, 1.5, 2];
 
 export default function BuddyMatch({
   userId,
@@ -44,7 +44,7 @@ export default function BuddyMatch({
   const [phase, setPhase] = useState<Phase>("idle");
   const [match, setMatch] = useState<MatchRow | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [radiusKm, setRadiusKm] = useState(3);
+  const [radiusKm, setRadiusKm] = useState(2);
   /** Where we were when we searched — used to show distance to the spot. */
   const [myPos, setMyPos] = useState<{ lat: number; lng: number } | null>(null);
   const [waitedSec, setWaitedSec] = useState(0);

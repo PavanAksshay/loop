@@ -179,19 +179,16 @@ export default function MapSection({
         setIsLocating(false);
         const { latitude, longitude } = position.coords;
         setClickedLatLng({ lat: latitude, lng: longitude });
-        setPingLocationName(`My GPS Position (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
         
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo([latitude, longitude], 15, {
             duration: 1.8,
           });
         }
-        
-        setShowPingModal(true);
       },
       (error) => {
         setIsLocating(false);
-        alert(`Location permission error: ${error.message}. You can select any city from the list or click anywhere on the map!`);
+        alert(`Location permission: ${error.message}. Please allow location access in your browser to center the map at your position.`);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -386,30 +383,13 @@ export default function MapSection({
           </span>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Top 30 Indian Cities Selector Dropdown */}
-          <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-2.5 py-1.5 rounded-xl shadow-inner">
-            <Building2 className="w-3.5 h-3.5 text-white shrink-0" />
-            <span className="text-[10px] text-white font-extrabold uppercase hidden xs:inline">City:</span>
-            <select
-              value={selectedCity.name}
-              onChange={(e) => handleCitySelect(e.target.value)}
-              className="select-white-arrow bg-transparent text-xs font-headline font-black text-white focus:outline-none cursor-pointer pr-1 appearance-none"
-            >
-              {INDIAN_CITIES.map((c) => (
-                <option key={c.name} value={c.name} className="bg-[#f8f1e3] text-black">
-                  {c.name} ({c.state})
-                </option>
-              ))}
-            </select>
-          </div>
-
+        <div className="flex items-center gap-2.5">
           {/* Use My Location GPS Button */}
           <button
             type="button"
             onClick={handleDetectMyLocation}
             disabled={isLocating}
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1.5 rounded-xl text-xs font-headline font-black flex items-center gap-1.5 transition-all active:scale-95"
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3.5 py-1.5 rounded-xl text-xs font-headline font-black flex items-center gap-1.5 transition-all active:scale-95 shadow-inner"
           >
             <LocateFixed className={`w-3.5 h-3.5 text-white ${isLocating ? "animate-spin" : ""}`} />
             <span>{isLocating ? "Detecting GPS..." : "Use My Location"}</span>
@@ -449,27 +429,13 @@ export default function MapSection({
             })}
           </div>
 
-          {/* Action Buttons: Ping My Spot & Post Route */}
+          {/* Action Buttons: Post Route */}
           <div className="flex items-center gap-2">
-            {/* Ping My Spot Button */}
-            <button
-              type="button"
-              onClick={() => setIsPinningMode(!isPinningMode)}
-              className={`font-headline text-xs font-black px-4 py-2 rounded-2xl flex items-center gap-1.5 transition-all uppercase tracking-wider shadow-lg ${
-                isPinningMode
-                  ? "bg-[#ecdfc4] text-black border-2 border-black"
-                  : "bg-black text-white border border-black hover:brightness-110 active:scale-95"
-              }`}
-            >
-              <Radio className={`w-4 h-4 stroke-[2.5] ${isPinningMode ? "text-black" : "text-white"}`} />
-              <span className="font-extrabold">{isPinningMode ? "Click Map to Drop Pin" : "📍 Ping My Spot"}</span>
-            </button>
-
             {onAddRouteClick && (
               <button
                 type="button"
                 onClick={onAddRouteClick}
-                className="hidden sm:flex bg-black text-white font-headline text-xs font-black px-3.5 py-2 rounded-2xl items-center gap-1.5 hover:scale-105 active:scale-95 transition-all uppercase tracking-wider"
+                className="bg-black text-white font-headline text-xs font-black px-3.5 py-2 rounded-2xl flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all uppercase tracking-wider shadow-lg"
               >
                 <Plus className="w-4 h-4 stroke-[3] text-white" />
                 <span>Post Trail</span>
