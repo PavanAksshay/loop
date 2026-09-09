@@ -35,8 +35,8 @@ export default function FitnessComingSoon() {
         </button>
 
         {/* Icon */}
-        <div className="w-20 h-20 rounded-3xl bg-[var(--wb-card)] border border-[var(--wb-line)] flex items-center justify-center">
-          <Dumbbell className="w-10 h-10 text-[var(--wb-text)]" strokeWidth={1.5} />
+        <div className="w-16 h-16 rounded-md bg-[var(--wb-card)] border border-[var(--wb-line)] flex items-center justify-center">
+          <Dumbbell className="w-8 h-8 text-[var(--wb-text)]" strokeWidth={1.5} />
         </div>
 
         {/* Message */}
@@ -53,7 +53,7 @@ export default function FitnessComingSoon() {
         {/* Back to landing */}
         <button
           onClick={() => navigate("/")}
-          className="mt-2 px-6 py-3 rounded-xl bg-[var(--wb-text)] text-[var(--wb-surface)] font-headline text-xs font-extrabold uppercase tracking-wider hover:opacity-90 transition-all active:scale-95"
+          className="mt-2 px-6 py-3 rounded-md bg-[var(--wb-text)] text-[var(--wb-surface)] font-headline text-xs font-extrabold uppercase tracking-wider hover:opacity-90 transition-all active:scale-95"
         >
           Back to Loop
         </button>

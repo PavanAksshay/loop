@@ -94,13 +94,13 @@ export default function AchievementsRoadmap({
         </div>
 
         {/* Achieved vs Unachieved Filter Buttons */}
-        <div className="flex items-center gap-1.5 bg-black/5 p-1 rounded-xl">
+        <div className="flex items-center gap-1.5 bg-black/5 p-1 rounded-md">
           <button
             type="button"
             onClick={() => setBadgeFilter("all")}
-            className={`px-3 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all ${
+            className={`px-3 py-1 rounded text-xs font-extrabold uppercase tracking-wider transition-all ${
               badgeFilter === "all"
-                ? "bg-black text-white shadow-sm"
+                ? "bg-black text-white"
                 : "text-gray-600 hover:text-black"
             }`}
           >
@@ -109,9 +109,9 @@ export default function AchievementsRoadmap({
           <button
             type="button"
             onClick={() => setBadgeFilter("achieved")}
-            className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-extrabold uppercase tracking-wider transition-all ${
               badgeFilter === "achieved"
-                ? "bg-black text-white shadow-sm"
+                ? "bg-black text-white"
                 : "text-gray-600 hover:text-black"
             }`}
           >
@@ -121,9 +121,9 @@ export default function AchievementsRoadmap({
           <button
             type="button"
             onClick={() => setBadgeFilter("unachieved")}
-            className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-extrabold uppercase tracking-wider transition-all ${
               badgeFilter === "unachieved"
-                ? "bg-black text-white shadow-sm"
+                ? "bg-black text-white"
                 : "text-gray-600 hover:text-black"
             }`}
           >

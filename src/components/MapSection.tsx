@@ -389,7 +389,7 @@ export default function MapSection({
             type="button"
             onClick={handleDetectMyLocation}
             disabled={isLocating}
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3.5 py-1.5 rounded-xl text-xs font-headline font-black flex items-center gap-1.5 transition-all active:scale-95 shadow-inner"
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3.5 py-1.5 rounded-md text-xs font-headline font-black flex items-center gap-1.5 transition-all active:scale-95"
           >
             <LocateFixed className={`w-3.5 h-3.5 text-white ${isLocating ? "animate-spin" : ""}`} />
             <span>{isLocating ? "Detecting GPS..." : "Use My Location"}</span>
@@ -402,7 +402,7 @@ export default function MapSection({
         {/* Top Controls Bar Over Map */}
         <div className="absolute top-2.5 sm:top-4 left-2.5 sm:left-4 right-2.5 sm:right-4 z-[500] flex flex-wrap items-center justify-between gap-2 sm:gap-3 pointer-events-auto">
           {/* Category Tabs */}
-          <div className="flex items-center gap-1 sm:gap-1.5 bg-[#f8f1e3]/95 backdrop-blur-xl border border-black/30 p-1 sm:p-1.5 rounded-2xl shadow-lg max-w-full overflow-x-auto no-scrollbar shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-[#f8f1e3] border border-black/30 p-1 sm:p-1.5 rounded-md max-w-full overflow-x-auto no-scrollbar shrink-0">
             {(["All", "Walking", "Jogging"] as const).map((cat) => {
               const isActive = activeTab === cat;
               let badgeColor = "#0a0a0a";
@@ -413,7 +413,7 @@ export default function MapSection({
                   key={cat}
                   type="button"
                   onClick={() => handleTabClick(cat)}
-                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl font-headline text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md font-headline text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap ${
                     isActive
                       ? "bg-black text-white font-extrabold"
                       : "text-gray-600 font-extrabold hover:text-black hover:bg-[#f0e4cc]"
@@ -435,7 +435,7 @@ export default function MapSection({
               <button
                 type="button"
                 onClick={onAddRouteClick}
-                className="bg-black text-white font-headline text-xs font-black px-3.5 py-2 rounded-2xl flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all uppercase tracking-wider shadow-lg"
+                className="bg-black text-white font-headline text-xs font-black px-3.5 py-2 rounded-md flex items-center gap-1.5 active:scale-95 transition-all uppercase tracking-wider"
               >
                 <Plus className="w-4 h-4 stroke-[3] text-white" />
                 <span>Post Trail</span>
@@ -470,7 +470,7 @@ export default function MapSection({
         <button
           type="button"
           onClick={handleZoomIn}
-          className="p-2.5 rounded-xl bg-[#f8f1e3] border border-black/30 hover:bg-[#f0e4cc] transition-all shadow-xl active:scale-90"
+          className="p-2.5 rounded-md bg-[#f8f1e3] border border-black/30 hover:bg-[#f0e4cc] transition-all active:scale-90"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4 text-black" />
@@ -478,7 +478,7 @@ export default function MapSection({
         <button
           type="button"
           onClick={handleZoomOut}
-          className="p-2.5 rounded-xl bg-[#f8f1e3] border border-black/30 hover:bg-[#f0e4cc] transition-all shadow-xl active:scale-90"
+          className="p-2.5 rounded-md bg-[#f8f1e3] border border-black/30 hover:bg-[#f0e4cc] transition-all active:scale-90"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4 text-black" />
@@ -486,7 +486,7 @@ export default function MapSection({
         <button
           type="button"
           onClick={handleResetMap}
-          className="p-2.5 rounded-xl bg-[#f8f1e3] border border-black/30 hover:bg-[#f0e4cc] transition-all shadow-xl active:scale-90"
+          className="p-2.5 rounded-md bg-[#f8f1e3] border border-black/30 hover:bg-[#f0e4cc] transition-all active:scale-90"
           title="Recenter City Map"
         >
           <RefreshCw className="w-4 h-4 text-black" />
@@ -497,8 +497,8 @@ export default function MapSection({
       <div id="bangalore-leaflet-map" ref={mapContainerRef} className="w-full h-full z-0" />
 
       {/* Compass Rose Info Indicator */}
-      <div className="absolute bottom-4 left-4 z-[500] pointer-events-none hidden sm:flex items-center gap-2 text-[10px] font-mono tracking-widest uppercase bg-[#f8f1e3] text-black border border-black/30 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-xl">
-        <Compass className="w-5 h-5 text-black animate-spin-slow shrink-0" />
+      <div className="absolute bottom-4 left-4 z-[500] pointer-events-none hidden sm:flex items-center gap-2 text-[10px] font-mono tracking-widest uppercase bg-[#f8f1e3] text-black border border-black/30 px-3.5 py-2 rounded-md">
+        <Compass className="w-4 h-4 text-black shrink-0" />
         <div>
           <div className="font-black text-black">{selectedCity.name} Map ({selectedCity.lat.toFixed(2)}°N, {selectedCity.lng.toFixed(2)}°E)</div>
           <div className="font-bold text-gray-500">Active Pins: {filteredRoutes.length} Trails • {filteredPings.length} Live Meetups</div>
@@ -507,12 +507,12 @@ export default function MapSection({
 
       {/* SELECTED ROUTE DETAILS OVERLAY CARD */}
       {selectedRoute && (
-        <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 z-[600] glass-panel-glow p-4 rounded-2xl shadow-2xl w-auto md:w-96 animate-fadeIn pointer-events-auto">
+        <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 z-[600] bg-[#f8f1e3] border border-[var(--wb-line)] p-4 rounded-md shadow-lg w-auto md:w-96 animate-fadeIn pointer-events-auto">
           {/* Close Button */}
           <button
             type="button"
             onClick={() => setSelectedRoute(null)}
-            className="absolute top-3 right-3 text-gray-400 hover:text-black p-1 rounded-full bg-black/5 hover:bg-black/10 transition-colors"
+            className="absolute top-3 right-3 text-gray-400 hover:text-black p-1 rounded-md bg-black/5 hover:bg-black/10 transition-colors"
             title="Close details"
           >
             <X className="w-4 h-4 text-black" />
@@ -532,7 +532,7 @@ export default function MapSection({
             <span>📍 {selectedRoute.location}</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 bg-black/5 p-2 rounded-xl border border-black/30 mb-3 text-center">
+          <div className="grid grid-cols-3 gap-2 bg-black/5 p-2 rounded-md border border-black/30 mb-3 text-center">
             <div>
               <div className="text-[9px] text-gray-500 uppercase font-black">Distance</div>
               <div className="text-xs font-extrabold text-black">{selectedRoute.distanceKm} km</div>
@@ -550,7 +550,7 @@ export default function MapSection({
           <button
             type="button"
             onClick={() => onSelectRoute(selectedRoute)}
-            className="w-full text-center bg-black text-white font-headline font-black text-xs py-2.5 rounded-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-md uppercase tracking-wider"
+            className="w-full text-center bg-black text-white font-headline font-black text-xs py-2.5 rounded-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 uppercase tracking-wider"
           >
             <Navigation className="w-4 h-4 fill-current text-white" />
             <span>Start Activity Session</span>
@@ -560,12 +560,12 @@ export default function MapSection({
 
       {/* SELECTED LIVE MEETUP PING OVERLAY CARD */}
       {selectedPing && (
-        <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 z-[600] glass-panel-glow p-4 rounded-2xl shadow-2xl w-auto md:w-96 animate-fadeIn pointer-events-auto">
+        <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 z-[600] bg-[#f8f1e3] border border-[var(--wb-line)] p-4 rounded-md shadow-lg w-auto md:w-96 animate-fadeIn pointer-events-auto">
           {/* Close Button */}
           <button
             type="button"
             onClick={() => setSelectedPing(null)}
-            className="absolute top-3 right-3 text-gray-400 hover:text-black p-1 rounded-full bg-black/5 hover:bg-black/10 transition-colors"
+            className="absolute top-3 right-3 text-gray-400 hover:text-black p-1 rounded-md bg-black/5 hover:bg-black/10 transition-colors"
             title="Close details"
           >
             <X className="w-4 h-4 text-black" />
@@ -575,10 +575,10 @@ export default function MapSection({
             <img
               src={selectedPing.authorAvatar}
               alt={selectedPing.authorName}
-              className="w-11 h-11 rounded-full object-cover border-2 border-black/30 shrink-0"
+              className="w-10 h-10 rounded-full object-cover border border-black/30 shrink-0"
             />
             <div className="overflow-hidden">
-              <span className="text-[9px] font-black uppercase tracking-widest text-black bg-[#f0e4cc] px-2 py-0.5 rounded-full border border-black/30">
+              <span className="text-[9px] font-black uppercase tracking-widest text-black bg-[#f0e4cc] px-2 py-0.5 rounded border border-black/30">
                 LIVE MEETUP PING
               </span>
               <h3 className="font-headline text-base font-extrabold text-black truncate mt-0.5">
@@ -588,7 +588,7 @@ export default function MapSection({
             </div>
           </div>
 
-          <p className="text-xs text-gray-700 bg-black/5 p-2.5 rounded-xl border border-black/30 mb-3 italic">
+          <p className="text-xs text-gray-700 bg-black/5 p-2.5 rounded-md border border-black/30 mb-3 italic">
             "{selectedPing.note}"
           </p>
 
@@ -607,9 +607,9 @@ export default function MapSection({
             type="button"
             onClick={() => {
               if (onJoinPing) onJoinPing(selectedPing.id);
-              alert(`🎉 You joined ${selectedPing.authorName}'s meetup!`);
+              alert(`You joined ${selectedPing.authorName}'s meetup.`);
             }}
-            className="w-full text-center bg-black text-white font-headline font-black text-xs py-2.5 rounded-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-md uppercase tracking-wider"
+            className="w-full text-center bg-black text-white font-headline font-black text-xs py-2.5 rounded-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 uppercase tracking-wider"
           >
             <Users className="w-4 h-4 fill-current text-white" />
             <span>Join {selectedCity.name} Walkers</span>
@@ -619,8 +619,8 @@ export default function MapSection({
 
       {/* DROP LIVE MEETUP PING MODAL */}
       {showPingModal && (
-        <div className="fixed inset-0 z-[2000] bg-black/40 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#f8f1e3] border border-black/30 p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-[2000] bg-black/40 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-[#f8f1e3] border border-black/30 p-6 rounded-md max-w-md w-full space-y-4 shadow-xl">
             <div className="flex justify-between items-center border-b border-black/30 pb-3">
               <div className="flex items-center gap-2">
                 <Radio className="w-5 h-5 text-black" />

@@ -215,16 +215,16 @@ function countToGroupSize(count: number | null | undefined): string {
 }
 
 const inputClass =
-  "w-full bg-black/5 border border-black/30 rounded-xl px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors";
+  "w-full bg-black/5 border border-black/30 rounded-md px-3.5 py-2.5 text-sm text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors";
 
 /**
  * Native <select> restyled to match the app: light surface, black focus
  * ring, and a custom chevron (the default one ignores our palette).
  */
 const selectClass =
-  "wb-select w-full bg-[#f0e4cc] border border-black/30 rounded-xl pl-4 pr-10 py-3 text-sm font-semibold text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer";
+  "wb-select w-full bg-[#f0e4cc] border border-black/30 rounded-md pl-3.5 pr-10 py-2.5 text-sm font-semibold text-black focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer";
 
-/** Multi- or single-select pill group. */
+/** Multi- or single-select chip group. */
 function ChipGroup({
   options,
   value,
@@ -258,10 +258,10 @@ function ChipGroup({
             key={opt}
             type="button"
             onClick={() => toggle(opt)}
-            className={`px-4 py-2.5 rounded-full text-[13px] font-bold border transition-all active:scale-95 ${
+            className={`px-3 py-1.5 rounded-md text-xs font-bold border transition-all active:scale-95 ${
               isOn
                 ? "bg-black border-black text-white"
-                : "bg-[#f0e4cc] border-black/30 text-gray-600 hover:bg-[#ecdfc4] hover:text-black"
+                : "bg-[#f0e4cc] border-black/30 text-gray-700 hover:bg-[#ecdfc4] hover:text-black"
             }`}
           >
             {isOn && <Check className="w-3 h-3 inline mr-1 -mt-0.5 stroke-[3] text-white" />}
@@ -293,32 +293,32 @@ function ToggleRow({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`w-full flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all active:scale-[0.99] ${
+      className={`w-full flex items-center gap-3 p-3.5 rounded-md border text-left transition-all active:scale-[0.99] ${
         checked
           ? "bg-black/5 border-black/40"
           : "bg-[#f8f1e3] border-black/30 hover:bg-[#f0e4cc]"
       }`}
     >
       <div
-        className={`w-9 h-9 rounded-xl flex items-center justify-center border shrink-0 ${
+        className={`w-8 h-8 rounded-md flex items-center justify-center border shrink-0 ${
           checked ? "bg-black/10 border-black/40" : "bg-[#f0e4cc] border-black/30"
         }`}
       >
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-extrabold text-black">{title}</div>
-        <div className="text-[12px] text-gray-500 font-medium leading-snug mt-0.5">
+        <div className="text-[13px] font-extrabold text-black">{title}</div>
+        <div className="text-[11px] text-gray-500 font-medium leading-snug mt-0.5">
           {description}
         </div>
       </div>
       <div
-        className={`w-11 h-6 rounded-full p-0.5 shrink-0 transition-all ${
+        className={`w-10 h-5 rounded-md p-0.5 shrink-0 transition-all ${
           checked ? "bg-black" : "bg-gray-300"
         }`}
       >
         <div
-          className={`w-5 h-5 rounded-full bg-[#f8f1e3] transition-transform duration-300 ${
+          className={`w-4 h-4 rounded bg-[#f8f1e3] transition-transform duration-300 ${
             checked ? "translate-x-5" : "translate-x-0"
           }`}
         />
@@ -329,8 +329,8 @@ function ToggleRow({
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] font-semibold leading-relaxed">
-      <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-black" />
+    <div className="flex items-start gap-2.5 p-3.5 rounded-md bg-red-50 border border-red-200 text-red-700 text-[13px] font-semibold leading-relaxed">
+      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-black" />
       <span>{message}</span>
     </div>
   );
@@ -354,7 +354,7 @@ function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled || busy}
-      className="w-full bg-black text-white font-headline font-black text-sm py-4 rounded-xl uppercase tracking-wider shadow-md hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+      className="w-full bg-black text-white font-headline font-black text-xs py-3.5 rounded-md uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
     >
       {busy ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : null}
       {children}
@@ -631,10 +631,10 @@ export default function OnboardingFlow({
     <div className="w-full max-w-lg mx-auto space-y-7">
       {/* Hero */}
       <div className="text-center space-y-3 flex flex-col items-center">
-        <div className="p-3.5 rounded-3xl bg-[#f0e4cc] border border-black/30">
-          <LoopLogo size={64} glow={true} />
+        <div className="p-3.5 rounded-md bg-[#f0e4cc] border border-black/30">
+          <LoopLogo size={64} glow={false} />
         </div>
-        <div className="font-logo text-4xl md:text-5xl font-normal bioluminescent-text uppercase tracking-wider">
+        <div className="font-logo text-4xl md:text-5xl font-normal text-[var(--wb-text)] uppercase tracking-wider">
           Loop
         </div>
         <p className="text-base md:text-lg text-gray-500 font-medium leading-relaxed max-w-sm mx-auto text-accent-serif">
@@ -646,15 +646,15 @@ export default function OnboardingFlow({
       {/* Feature strip — same tile language as the dashboard metrics */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { icon: <Footprints className="w-4.5 h-4.5 text-black" />, label: "Track Steps" },
-          { icon: <Compass className="w-4.5 h-4.5 text-black" />, label: "Scenic Routes" },
-          { icon: <Users className="w-4.5 h-4.5 text-black" />, label: "Buddy Meetups" },
+          { icon: <Footprints className="w-4 h-4 text-black" />, label: "Track Steps" },
+          { icon: <Compass className="w-4 h-4 text-black" />, label: "Scenic Routes" },
+          { icon: <Users className="w-4 h-4 text-black" />, label: "Buddy Meetups" },
         ].map((f) => (
           <div
             key={f.label}
-            className="glass-panel p-3.5 rounded-2xl flex flex-col items-center gap-2 text-center"
+            className="bg-[var(--wb-surface)] border border-[var(--wb-line)] p-3.5 rounded-md flex flex-col items-center gap-2 text-center"
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-[#f0e4cc] border-black/30">
+            <div className="w-8 h-8 rounded-md flex items-center justify-center border bg-[#f0e4cc] border-black/30">
               {f.icon}
             </div>
             <span className="text-[11px] uppercase font-black tracking-wider text-gray-600">
@@ -665,10 +665,10 @@ export default function OnboardingFlow({
       </div>
 
       {/* Sign-in card */}
-      <div className="glass-panel-glow p-6 rounded-2xl space-y-4">
+      <div className="bg-[var(--wb-surface)] border border-[var(--wb-line)] p-6 rounded-md space-y-4">
         <div className="text-center space-y-1">
           <h2 className="font-headline text-xl font-extrabold text-black uppercase tracking-wider">
-            Enter The Grove
+            Sign In
           </h2>
           <p className="text-sm text-gray-500 font-medium leading-relaxed text-accent-serif">
             Sign in with Google to sync your trails across devices
@@ -681,10 +681,10 @@ export default function OnboardingFlow({
           type="button"
           onClick={handleGoogleSignIn}
           disabled={busy}
-          className="w-full bg-[#f8f1e3] hover:bg-[#f8f1e3] border border-black/30 text-black font-headline font-black text-sm py-4 rounded-xl uppercase tracking-wider shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full bg-[#f8f1e3] hover:bg-[#f0e4cc] border border-black/30 text-black font-headline font-black text-xs py-3.5 rounded-md uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {busy ? (
-            <Loader2 className="w-4.5 h-4.5 animate-spin text-black" />
+            <Loader2 className="w-4 h-4 animate-spin text-black" />
           ) : (
             <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
               <path
@@ -725,9 +725,9 @@ export default function OnboardingFlow({
             <button
               type="button"
               onClick={onSkipForUser}
-              className="w-full bg-black text-white font-headline font-black text-xs py-3.5 px-4 rounded-xl uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full bg-black text-white font-headline font-black text-xs py-3.5 px-4 rounded-md uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Zap className="w-4.5 h-4.5 fill-white text-white" />
+              <Zap className="w-4 h-4 fill-white text-white" />
               <span>Skip Onboarding & Go to Landing Page</span>
             </button>
             <p className="text-[11px] text-gray-500 text-center font-bold tracking-wide">

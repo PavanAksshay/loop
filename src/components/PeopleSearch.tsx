@@ -358,22 +358,22 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
   );
 
   const smallBtn =
-    "px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50";
+    "px-3 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50";
 
   return (
     <div className="w-full space-y-4">
       {/* Header & Title */}
       <div className="flex items-center justify-between pb-4 border-b border-black/20">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center shadow-sm">
-            <Users className="w-5 h-5 shrink-0" />
+          <div className="w-8 h-8 rounded-md bg-black text-white flex items-center justify-center">
+            <Users className="w-4 h-4 shrink-0" />
           </div>
           <div>
             <h3 className="font-headline text-lg font-extrabold text-[var(--wb-text)] tracking-tight">
               Community & Network
             </h3>
             <p className="text-xs text-gray-500 text-accent-serif">
-              Connect by @username to chat, share routes, and track live activity
+              Connect by username to chat, share routes, and track live activity
             </p>
           </div>
         </div>
@@ -381,9 +381,9 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
         {analytics && (
           <button
             onClick={() => setShowAnalyticsDetails((prev) => !prev)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-xs font-bold text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/5 hover:bg-black/10 text-xs font-bold text-gray-700 transition-colors border border-black/10"
           >
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+            <TrendingUp className="w-3.5 h-3.5 text-black" />
             <span>Growth</span>
             {showAnalyticsDetails ? (
               <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
@@ -398,21 +398,21 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
       {analytics && (
         <div className="space-y-3">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="p-3 rounded-2xl bg-black/[0.03] border border-black/10 transition-all hover:bg-black/[0.05]">
+            <div className="p-3 rounded-md bg-black/[0.03] border border-black/10">
               <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">
                 Followers
               </div>
               <div className="text-xl font-extrabold text-[var(--wb-text)] mt-0.5 flex items-center gap-2">
                 <span>{analytics.followers_count}</span>
                 {analytics.growth_week > 0 && (
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold text-black bg-black/10 px-1.5 py-0.5 rounded">
                     +{analytics.growth_week} this wk
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-black/[0.03] border border-black/10 transition-all hover:bg-black/[0.05]">
+            <div className="p-3 rounded-md bg-black/[0.03] border border-black/10">
               <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">
                 Following
               </div>
@@ -421,32 +421,30 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
               </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-black/[0.03] border border-black/10 transition-all hover:bg-black/[0.05]">
+            <div className="p-3 rounded-md bg-black/[0.03] border border-black/10">
               <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">
                 Mutual Friends
               </div>
-              <div className="text-xl font-extrabold text-indigo-600 mt-0.5 flex items-center gap-1.5">
-                <span>{analytics.mutuals_count}</span>
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              <div className="text-xl font-extrabold text-[var(--wb-text)] mt-0.5">
+                {analytics.mutuals_count}
               </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-black/[0.03] border border-black/10 transition-all hover:bg-black/[0.05]">
+            <div className="p-3 rounded-md bg-black/[0.03] border border-black/10">
               <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">
                 Pending
               </div>
-              <div className="text-xl font-extrabold text-amber-600 mt-0.5">
+              <div className="text-xl font-extrabold text-[var(--wb-text)] mt-0.5">
                 {analytics.pending_count}
               </div>
             </div>
           </div>
 
-          {/* Expanded 7-day Activity Sparkline / Breakdown */}
+          {/* Expanded 7-day Activity Breakdown */}
           {showAnalyticsDetails && analytics.history?.length > 0 && (
-            <div className="p-4 rounded-2xl bg-black/[0.04] border border-black/10 space-y-2 animate-fadeIn">
+            <div className="p-4 rounded-md bg-black/[0.04] border border-black/10 space-y-2 animate-fadeIn">
               <div className="flex items-center justify-between text-xs font-bold text-gray-700">
                 <span className="flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-amber-500" />
                   7-Day Follower Activity
                 </span>
                 <span className="text-[11px] text-gray-500">
@@ -531,16 +529,15 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search @username or display name…"
-              className="w-full bg-black/5 border border-black/15 rounded-xl pl-9 pr-9 py-2.5 text-sm text-[var(--wb-text)] placeholder:text-gray-400 focus:outline-none focus:border-black/40 transition-colors"
+              className="w-full bg-black/5 border border-black/15 rounded-md pl-9 pr-9 py-2.5 text-sm text-[var(--wb-text)] placeholder:text-gray-400 focus:outline-none focus:border-black/40 transition-colors"
             />
           </div>
 
-          {/* Suggestions Carousel ("People you may know") when query is empty */}
+          {/* Suggestions ("People you may know") when query is empty */}
           {query.trim().length < 2 && suggestions.length > 0 && (
             <div className="space-y-2.5 pt-1">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-500">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <div className="text-xs font-black uppercase tracking-wider text-gray-500">
                   <span>People you may know</span>
                 </div>
               </div>
@@ -551,7 +548,7 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
                   return (
                     <div
                       key={sug.id}
-                      className="p-3 rounded-2xl bg-black/[0.02] border border-black/10 flex items-center justify-between gap-3 hover:bg-black/[0.04] transition-all"
+                      className="p-3 rounded-md bg-black/[0.02] border border-black/10 flex items-center justify-between gap-3 hover:bg-black/[0.04] transition-all"
                     >
                       <Identity
                         avatar={sug.avatar_url}
@@ -561,7 +558,7 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
                       />
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         {sug.mutual_count > 0 && (
-                          <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">
+                          <span className="text-[9px] font-bold text-gray-700 bg-black/5 px-1.5 py-0.5 rounded">
                             {sug.mutual_count} mutual{sug.mutual_count > 1 ? "s" : ""}
                           </span>
                         )}
@@ -917,10 +914,10 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
 
       {/* Block Confirmation Dialog Modal */}
       {userToBlock && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-4 border border-black/10">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
-              <ShieldAlert className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fadeIn">
+          <div className="w-full max-w-sm bg-white rounded-lg p-6 shadow-xl space-y-4 border border-black/10">
+            <div className="w-10 h-10 rounded-md bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+              <ShieldAlert className="w-5 h-5" />
             </div>
 
             <div className="text-center space-y-1">
@@ -936,14 +933,14 @@ export default function PeopleSearch({ userId, onNotify }: PeopleSearchProps) {
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setUserToBlock(null)}
-                className="flex-1 py-2.5 rounded-xl border border-black/15 text-xs font-bold text-gray-700 hover:bg-black/5 transition-colors"
+                className="flex-1 py-2.5 rounded-md border border-black/15 text-xs font-bold text-gray-700 hover:bg-black/5 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmBlock}
                 disabled={busy}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors shadow-sm"
+                className="flex-1 py-2.5 rounded-md bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors"
               >
                 {busy ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Block"}
               </button>

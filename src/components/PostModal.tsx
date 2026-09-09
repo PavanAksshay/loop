@@ -40,7 +40,7 @@ const parseScheduledTime = (hourMinute: string, meridiem: "AM" | "PM") => {
 };
 
 const fieldClass =
-  "mt-1 w-full rounded-xl border border-[var(--wb-line)] bg-[#f8f1e3] px-3 py-2 text-xs text-[var(--wb-text)] outline-none focus:border-black";
+  "mt-1 w-full rounded-md border border-[var(--wb-line)] bg-[#f8f1e3] px-3 py-2 text-xs text-[var(--wb-text)] outline-none focus:border-black";
 const labelClass = "block text-[10px] font-black uppercase tracking-[0.24em] text-gray-600";
 
 export default function PostModal({ isOpen, route, routes = [], userId, onClose, onPublish }: PostModalProps) {
@@ -85,11 +85,7 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
   const handleCustomImageUpload = async (files: FileList | null) => {
     if (!files?.length) return;
     const pending = Array.from(files);
-    if (pending.length < 5) {
-      setError("Please upload at least 5 trail images before publishing a custom trail.");
-      return;
-    }
-
+    
     setUploadingImages(true);
     setError(null);
     try {
@@ -98,8 +94,8 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
       );
       const nextUrls = uploadResults.map((result) => result.url);
       setCustomImages((prev) => [...prev, ...nextUrls].slice(0, 8));
-    } catch (err: any) {
-      setError(err?.message || "Could not upload those trail images.");
+    } catch (uploadError: any) {
+      setError(uploadError?.message || "Failed to upload trail images.");
     } finally {
       setUploadingImages(false);
     }
@@ -107,76 +103,84 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError(null);
 
-    if (!title.trim() || !scheduledDate || !scheduledHourMinute) {
-      setError("Title, date, and time are all required.");
+    if (!title.trim()) {
+      setError("Please provide a title for this run.");
       return;
     }
 
     if (!visibility) {
-      setError("Choose Public or Private before publishing this post.");
+      setError("Please choose a visibility setting (Public or Private).");
       return;
     }
 
-    if (!dateTime || dateTime.getTime() <= Date.now() - 1000 * 60) {
-      setError("The scheduled date cannot be in the past.");
+    if (!dateTime) {
+      setError("Please provide a valid scheduled date and time.");
       return;
     }
 
-    if (trailMode === "existing") {
-      if (!selectedRoute) {
-        setError("Choose a trail before scheduling a post.");
+    if (dateTime.getTime() < Date.now()) {
+      setError("Please choose a future date and time.");
+      return;
+    }
+
+    if (trailMode === "custom") {
+      if (!trailName.trim() || !trailLocation.trim()) {
+        setError("Please enter both a trail name and location for custom trail.");
+        return;
+      }
+
+      if (customImages.length < 5) {
+        setError("Custom trails require at least 5 uploaded photos.");
+        return;
+      }
+
+      const trailDraft: Omit<Route, "id"> = {
+        name: trailName.trim(),
+        location: trailLocation.trim(),
+        category: trailCategory,
+        distanceKm: Number(trailDistanceKm) || 0,
+        elevationGainM: Number(trailElevationGainM) || 0,
+        estimatedTimeMin: Number(trailEstimatedTimeMin) || 0,
+        rating: 5,
+        image: customImages[0],
+        images: customImages,
+        author: {
+          name: "You",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+        },
+        review: trailReview.trim() || "Custom community trail created during post scheduling.",
+        reviewTime: "Just now",
+        lat: 12.9716,
+        lng: 77.5946,
+        visibility,
+      };
+
+      onPublish({
+        title: title.trim(),
+        description: description.trim(),
+        scheduled_at: dateTime.toISOString(),
+        visibility,
+        trailDraft,
+      });
+    } else {
+      if (!selectedRoute?.id) {
+        setError("Please choose a trail from the feed.");
         return;
       }
 
       onPublish({
         title: title.trim(),
-        description: description.trim() || "Community run scheduled for this trail.",
+        description: description.trim(),
         scheduled_at: dateTime.toISOString(),
         visibility,
         trailId: selectedRoute.id,
-      });
-    } else {
-      if (!trailName.trim() || !trailLocation.trim()) {
-        setError("Please enter both a trail name and location for the custom trail.");
-        return;
-      }
-      if (customImages.length < 5) {
-        setError("Please upload at least 5 images before publishing a custom trail.");
-        return;
-      }
-
-      const firstImage = customImages[0];
-      onPublish({
-        title: title.trim(),
-        description: description.trim() || "Community run scheduled for this trail.",
-        scheduled_at: dateTime.toISOString(),
-        visibility,
-        trailDraft: {
-          name: trailName.trim(),
-          location: trailLocation.trim(),
-          category: trailCategory,
-          distanceKm: Number.parseFloat(trailDistanceKm) || 5,
-          elevationGainM: Number.parseInt(trailElevationGainM, 10) || 100,
-          estimatedTimeMin: Number.parseInt(trailEstimatedTimeMin, 10) || 40,
-          rating: 4.9,
-          image: firstImage,
-          images: customImages,
-          author: {
-            name: "Trail Explorer",
-            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-          },
-          review: trailReview.trim() || "Custom trail shared by the Loop community.",
-          reviewTime: "Just now",
-          lat: 50 + Math.random() * 20,
-          lng: 40 + Math.random() * 20,
-        },
       });
     }
 
     setTitle("");
     setDescription("");
-    setError(null);
     setVisibility(null);
     setTrailMode("existing");
     setSelectedTrailId(route?.id ?? routes[0]?.id ?? "");
@@ -192,8 +196,8 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
-      <div className="w-full max-w-4xl overflow-hidden border border-black/30 bg-[var(--wb-surface)] shadow-2xl text-[var(--wb-text)]">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/75 p-4">
+      <div className="w-full max-w-4xl overflow-hidden rounded-lg border border-black/30 bg-[var(--wb-surface)] shadow-xl text-[var(--wb-text)]">
         <div className="flex items-center justify-between border-b border-black/20 px-5 py-4">
           <div>
             <h2 className="font-headline text-lg font-black uppercase tracking-[0.22em] text-black">Create Post</h2>
@@ -208,15 +212,15 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
           <div className="space-y-4 border-t border-black/20 pt-4 md:border-t-0 md:border-r md:pr-4 md:pt-0">
             <div className="font-headline text-sm font-black uppercase tracking-[0.2em] text-black">Trail Snapshot</div>
 
-            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[var(--wb-line)] bg-black/5 p-1">
+            <div className="grid grid-cols-2 gap-2 rounded-md border border-[var(--wb-line)] bg-black/5 p-1">
               {(["existing", "custom"] as const).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setTrailMode(mode)}
-                  className={`rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] transition-all ${
+                  className={`rounded px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] transition-all ${
                     trailMode === mode
-                      ? "bg-black text-white shadow-md"
+                      ? "bg-black text-white"
                       : "text-gray-600 hover:bg-black/5"
                   }`}
                 >
@@ -242,22 +246,22 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
 
                 {selectedRoute ? (
                   <div className="space-y-3">
-                    <div className="overflow-hidden rounded-2xl border border-[var(--wb-line)]">
+                    <div className="overflow-hidden rounded-md border border-[var(--wb-line)]">
                       <img src={selectedRoute.image} alt={selectedRoute.name} referrerPolicy="no-referrer" className="h-44 w-full object-cover" />
                     </div>
                     <div className="space-y-1 text-xs text-gray-700">
                       <div className="flex items-center gap-2"> <Compass className="w-3.5 h-3.5 text-black" /> <span className="font-bold text-[var(--wb-text)]">{selectedRoute.name}</span></div>
                       <div className="flex items-center gap-2"> <MapPinned className="w-3.5 h-3.5 text-black" /> <span>{selectedRoute.location}</span></div>
                       <div className="grid grid-cols-2 gap-2 pt-2 text-[11px]">
-                        <div className="rounded-xl border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">Distance</div><div className="font-headline text-lg font-bold text-black">{selectedRoute.distanceKm}km</div></div>
-                        <div className="rounded-xl border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">Elevation</div><div className="font-headline text-lg font-bold text-black">{selectedRoute.elevationGainM}m</div></div>
-                        <div className="rounded-xl border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">TIME</div><div className="font-headline text-lg font-bold text-[var(--wb-text)]">{selectedRoute.estimatedTimeMin}m</div></div>
-                        <div className="rounded-xl border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">Category</div><div className="font-headline text-lg font-bold text-black">{selectedRoute.category}</div></div>
+                        <div className="rounded-md border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">Distance</div><div className="font-headline text-lg font-bold text-black">{selectedRoute.distanceKm}km</div></div>
+                        <div className="rounded-md border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">Elevation</div><div className="font-headline text-lg font-bold text-black">{selectedRoute.elevationGainM}m</div></div>
+                        <div className="rounded-md border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">TIME</div><div className="font-headline text-lg font-bold text-[var(--wb-text)]">{selectedRoute.estimatedTimeMin}m</div></div>
+                        <div className="rounded-md border border-[var(--wb-line)] bg-black/5 p-2"><div className="text-[9px] text-gray-500 uppercase">Category</div><div className="font-headline text-lg font-bold text-black">{selectedRoute.category}</div></div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-[var(--wb-line)] bg-black/5 p-4 text-xs text-gray-500">No trail selected.</div>
+                  <div className="rounded-md border border-dashed border-[var(--wb-line)] bg-black/5 p-4 text-xs text-gray-500">No trail selected.</div>
                 )}
               </div>
             ) : (
@@ -298,10 +302,10 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
                   Review
                   <textarea value={trailReview} onChange={(e) => setTrailReview(e.target.value)} rows={3} className={fieldClass} />
                 </label>
-                <div className="rounded-2xl border border-dashed border-[var(--wb-line)] bg-black/5 p-3">
+                <div className="rounded-md border border-dashed border-[var(--wb-line)] bg-black/5 p-3">
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <span className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-600">Trail Images</span>
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center gap-2 rounded-xl bg-black border border-black px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-white">
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center gap-2 rounded bg-black border border-black px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-white">
                       <Upload className="w-3.5 h-3.5 text-white" />
                       Upload
                     </button>
@@ -311,7 +315,7 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
                   {customImages.length > 0 && (
                     <div className="mt-3 grid grid-cols-3 gap-2">
                       {customImages.map((url, index) => (
-                        <div key={`${url}-${index}`} className="overflow-hidden rounded-xl border border-[var(--wb-line)]">
+                        <div key={`${url}-${index}`} className="overflow-hidden rounded border border-[var(--wb-line)]">
                           <img src={url} alt={`Custom trail preview ${index + 1}`} referrerPolicy="no-referrer" className="h-20 w-full object-cover" />
                         </div>
                       ))}
@@ -353,14 +357,14 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
                     className={`${fieldClass} mt-0 flex-1 min-w-0`}
                     placeholder="1:30"
                   />
-                  <div className="flex shrink-0 rounded-xl border border-[var(--wb-line)] bg-[#f8f1e3] p-1 gap-1">
+                  <div className="flex shrink-0 rounded-md border border-[var(--wb-line)] bg-[#f8f1e3] p-1 gap-1">
                     {(["AM", "PM"] as const).map((option) => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => setScheduledMeridiem(option)}
                         aria-pressed={scheduledMeridiem === option}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-black tracking-wide transition-colors ${
+                        className={`px-2.5 py-1 rounded text-[11px] font-black tracking-wide transition-colors ${
                           scheduledMeridiem === option
                             ? "bg-black text-white"
                             : "text-gray-500 hover:text-black"
@@ -384,7 +388,7 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
                 {(["PUBLIC", "PRIVATE"] as PostVisibility[]).map((option) => (
                   <label
                     key={option}
-                    className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-xs text-[var(--wb-text)] transition-all ${
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-xs text-[var(--wb-text)] transition-all ${
                       visibility === option
                         ? "border-black bg-black/10"
                         : "border-[var(--wb-line)] bg-black/5"
@@ -403,17 +407,17 @@ export default function PostModal({ isOpen, route, routes = [], userId, onClose,
               )}
             </div>
 
-            {error && <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-[11px] font-bold text-red-700">{error}</div>}
+            {error && <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-[11px] font-bold text-red-700">{error}</div>}
 
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
                 disabled={!visibility}
-                className="flex-1 rounded-xl bg-black text-white hover:opacity-90 px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.24em] shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
+                className="flex-1 rounded-md bg-black text-white hover:opacity-90 px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.24em] shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
               >
                 Publish
               </button>
-              <button type="button" onClick={onClose} className="flex-1 rounded-xl border border-[var(--wb-line)] bg-[#f8f1e3] px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.24em] text-[var(--wb-text)] hover:bg-black/5 transition-all">Cancel</button>
+              <button type="button" onClick={onClose} className="flex-1 rounded-md border border-[var(--wb-line)] bg-[#f8f1e3] px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.24em] text-[var(--wb-text)] hover:bg-black/5 transition-all">Cancel</button>
             </div>
           </div>
         </form>

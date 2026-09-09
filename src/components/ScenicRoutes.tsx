@@ -256,7 +256,7 @@ export default function ScenicRoutes({
                 placeholder="e.g. Cubbon Park Bamboo Grove Circuit"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+                className="w-full bg-white/5 border border-[var(--wb-line)] rounded-md px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
               />
             </div>
 
@@ -271,7 +271,7 @@ export default function ScenicRoutes({
                   placeholder="e.g. Cubbon Park, Bengaluru"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+                  className="w-full bg-white/5 border border-[var(--wb-line)] rounded-md px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
                 />
               </div>
 
@@ -283,7 +283,7 @@ export default function ScenicRoutes({
                   value={category}
                   disabled={fromSession}
                   onChange={(e) => setCategory(e.target.value as any)}
-                  className={`w-full border rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
+                  className={`w-full border rounded-md px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
                     fromSession
                       ? "bg-black/5 border-black/15 cursor-not-allowed"
                       : "bg-white/5 border-[var(--wb-line)]"
@@ -304,9 +304,9 @@ export default function ScenicRoutes({
                 <button
                   type="button"
                   onClick={() => setVisibility("PUBLIC")}
-                  className={`flex items-start gap-3 p-3 text-left border rounded-xl transition-all ${
+                  className={`flex items-start gap-3 p-3 text-left border rounded-md transition-all ${
                     visibility === "PUBLIC"
-                      ? "border-black bg-black text-white shadow-sm"
+                      ? "border-black bg-black text-white"
                       : "border-[var(--wb-line)] bg-white/50 text-[var(--wb-text)] hover:border-black/50"
                   }`}
                 >
@@ -322,9 +322,9 @@ export default function ScenicRoutes({
                 <button
                   type="button"
                   onClick={() => setVisibility("PRIVATE")}
-                  className={`flex items-start gap-3 p-3 text-left border rounded-xl transition-all ${
+                  className={`flex items-start gap-3 p-3 text-left border rounded-md transition-all ${
                     visibility === "PRIVATE"
-                      ? "border-black bg-black text-white shadow-sm"
+                      ? "border-black bg-black text-white"
                       : "border-[var(--wb-line)] bg-white/50 text-[var(--wb-text)] hover:border-black/50"
                   }`}
                 >
@@ -351,7 +351,7 @@ export default function ScenicRoutes({
                   readOnly={fromSession}
                   value={distanceKm}
                   onChange={(e) => setDistanceKm(e.target.value)}
-                  className={`w-full border rounded-xl px-3 py-1.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
+                  className={`w-full border rounded-md px-3 py-1.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
                     fromSession
                       ? "bg-black/5 border-black/15 cursor-not-allowed"
                       : "bg-white/5 border-[var(--wb-line)]"
@@ -369,7 +369,7 @@ export default function ScenicRoutes({
                   readOnly={fromSession}
                   value={elevationGainM}
                   onChange={(e) => setElevationGainM(e.target.value)}
-                  className={`w-full border rounded-xl px-3 py-1.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
+                  className={`w-full border rounded-md px-3 py-1.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
                     fromSession
                       ? "bg-black/5 border-black/15 cursor-not-allowed"
                       : "bg-white/5 border-[var(--wb-line)]"
@@ -387,7 +387,7 @@ export default function ScenicRoutes({
                   readOnly={fromSession}
                   value={durationMin}
                   onChange={(e) => setDurationMin(e.target.value)}
-                  className={`w-full border rounded-xl px-3 py-1.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
+                  className={`w-full border rounded-md px-3 py-1.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black ${
                     fromSession
                       ? "bg-black/5 border-black/15 cursor-not-allowed"
                       : "bg-white/5 border-[var(--wb-line)]"
@@ -406,7 +406,7 @@ export default function ScenicRoutes({
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
                 rows={3}
-                className="w-full bg-white/5 border border-[var(--wb-line)] rounded-xl px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+                className="w-full bg-white/5 border border-[var(--wb-line)] rounded-md px-3 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
               />
             </div>
 
@@ -427,20 +427,20 @@ export default function ScenicRoutes({
               />
 
               {pathImage ? (
-                <div className="relative rounded-xl overflow-hidden border border-[var(--wb-line)]">
+                <div className="relative rounded-md overflow-hidden border border-[var(--wb-line)]">
                   <img src={pathImage} alt="Route path preview" className="w-full h-40 object-cover" />
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
-                      className="px-2.5 py-1.5 rounded-lg bg-black/70 text-white text-[10px] font-black uppercase tracking-wider hover:bg-black/85"
+                      className="px-2.5 py-1.5 rounded bg-black/70 text-white text-[10px] font-black uppercase tracking-wider hover:bg-black/85"
                     >
                       Replace
                     </button>
                     <button
                       type="button"
                       onClick={() => setPathImage(null)}
-                      className="p-1.5 rounded-lg bg-black/70 hover:bg-black/85"
+                      className="p-1.5 rounded bg-black/70 hover:bg-black/85"
                       title="Remove image"
                     >
                       <Trash2 className="w-3.5 h-3.5 text-white" />
@@ -451,7 +451,7 @@ export default function ScenicRoutes({
                 <button
                   type="button"
                   onClick={() => imageInputRef.current?.click()}
-                  className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-xl border border-dashed border-[var(--wb-line)] bg-white/5 hover:bg-white/10 transition-all active:scale-[0.99]"
+                  className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-md border border-dashed border-[var(--wb-line)] bg-white/5 hover:bg-white/10 transition-all active:scale-[0.99]"
                 >
                   <ImageIcon className="w-6 h-6 text-black" />
                   <span className="text-[12px] font-black uppercase tracking-wider text-[var(--wb-text)]">
@@ -467,7 +467,7 @@ export default function ScenicRoutes({
             <button
               type="submit"
               disabled={uploadingImage}
-              className="w-full bg-black text-white font-headline font-black text-xs py-3 rounded-xl uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50 hover:bg-neutral-800 transition-colors"
+              className="w-full bg-black text-white font-headline font-black text-xs py-3 rounded-md uppercase tracking-wider flex items-center justify-center gap-1.5 disabled:opacity-50 hover:bg-neutral-800 transition-colors"
             >
               <Send className="w-4 h-4 text-white" />
               <span>

@@ -87,11 +87,13 @@ h3 {
   .glass-panel {
     background: var(--wb-surface);
     border: 1px solid var(--wb-line);
+    border-radius: 6px;
   }
 
   .glass-panel-glow {
     background: var(--wb-surface);
     border: 1px solid var(--wb-line);
+    border-radius: 6px;
   }
 
   .bioluminescent-gradient {
@@ -109,34 +111,6 @@ h3 {
   .scenic-gradient {
     background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.82) 100%);
   }
-
-  .glow-cyan,
-  .glow-emerald {
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  }
-}
-
-@keyframes pulse-ring {
-  0% { transform: scale(0.33); opacity: 0; }
-  80%, 100% { transform: scale(1.4); opacity: 0; }
-  40% { opacity: 0.7; }
-}
-
-.pulse-animation-marker {
-  position: relative;
-}
-
-.pulse-animation-marker::before {
-  content: '';
-  position: absolute;
-  width: 320%;
-  height: 320%;
-  left: -110%;
-  top: -110%;
-  border-radius: 999px;
-  background-color: var(--wb-accent);
-  animation: pulse-ring 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-  pointer-events: none;
 }
 
 /* Scrollbars */
@@ -225,7 +199,7 @@ select.select-white-arrow,
 input[type="date"] {
   appearance: none;
   -webkit-appearance: none;
-  border-radius: 0.9rem;
+  border-radius: 6px;
   border: 1px solid var(--wb-line);
   background: #fbf6ec;
   color: var(--wb-text);

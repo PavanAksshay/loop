@@ -882,9 +882,9 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
           {toasts.map((t) => (
             <div
               key={t.id}
-              className="toast-enter pointer-events-auto w-full flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border text-xs font-bold bg-[#f8f1e3] border-black/30 text-black"
+              className="toast-enter pointer-events-auto w-full flex items-center gap-2.5 px-4 py-3 rounded-md shadow-md border text-xs font-bold bg-[#f8f1e3] border-black/30 text-black"
             >
-              <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center bg-[#f0e4cc]">
+              <span className="shrink-0 w-6 h-6 rounded flex items-center justify-center bg-[#f0e4cc]">
                 {t.tone === "warn" ? (
                   <Bell className="w-3.5 h-3.5 text-black" />
                 ) : (
@@ -898,13 +898,13 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
       )}
 
       {/* Global Header */}
-      <header className="sticky top-0 z-[100] bg-[#f8f1e3]/90 backdrop-blur-2xl border-b border-black/30 px-4 md:px-10 py-3.5 flex justify-between items-center shadow-sm">
+      <header className="sticky top-0 z-[100] bg-[#f8f1e3]/95 border-b border-black/30 px-4 md:px-10 py-3.5 flex justify-between items-center">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3.5 sm:gap-6">
           <button
             onClick={() => navigate("/")}
             title="Return to Choose Your Track"
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-black/30 bg-[#f8f1e3] text-xs font-black uppercase tracking-wider text-black hover:bg-black hover:text-white transition-all shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-black/30 bg-[#f8f1e3] text-xs font-black uppercase tracking-wider text-black hover:bg-black hover:text-white transition-all active:scale-95 cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
             <span>Tracks</span>
@@ -1027,7 +1027,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
 
       {/* Notifications Inbox Drawer */}
       {showNotifications && (
-        <div className="fixed top-18 right-4 z-[999] w-80 p-4 rounded-2xl shadow-2xl bg-[var(--wb-surface)] border border-[var(--wb-line)] animate-fadeIn">
+        <div className="fixed top-18 right-4 z-[999] w-80 p-4 rounded-md shadow-lg bg-[var(--wb-surface)] border border-[var(--wb-line)] animate-fadeIn">
           <div className="flex justify-between items-center mb-3">
             <span className="text-xs font-black uppercase tracking-wider text-black">
               Notifications Inbox
@@ -1048,7 +1048,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                     prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
                   )
                 }
-                className={`p-2.5 rounded-xl text-xs leading-relaxed border transition-colors cursor-pointer ${
+                className={`p-2.5 rounded-md text-xs leading-relaxed border transition-colors cursor-pointer ${
                   n.read
                     ? "bg-transparent border-[var(--wb-line)] text-gray-500"
                     : "bg-[#f0e4cc] border-black/40 text-black font-semibold"
@@ -1070,7 +1070,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
 
       {/* Profile & Biometrics Drawer */}
       {showProfileDrawer && (
-        <div className="fixed inset-0 z-[1100] bg-black/80 backdrop-blur-md flex justify-end animate-fadeIn">
+        <div className="fixed inset-0 z-[1100] bg-black/80 flex justify-end animate-fadeIn">
           <div className="w-full max-w-md h-full bg-[var(--wb-surface)] text-[var(--wb-text)] border-l border-[var(--wb-line)] p-6 space-y-6 flex flex-col justify-between overflow-y-auto">
             <div className="space-y-6">
               {/* Header */}
@@ -1087,14 +1087,14 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                     setEditingProfile(false);
                     setShowAvatarPicker(false);
                   }}
-                  className="p-1.5 rounded-xl bg-black/5 text-gray-500 hover:text-black transition-colors"
+                  className="p-1.5 rounded-md bg-black/5 text-gray-500 hover:text-black transition-colors"
                 >
                   <X className="w-5 h-5 text-black" />
                 </button>
               </div>
 
               {/* Current Selected Avatar Preview Header */}
-              <div className="flex items-center gap-4 bg-[var(--wb-card)] p-4 rounded-2xl border border-[var(--wb-line)] shadow-md">
+              <div className="flex items-center gap-4 bg-[var(--wb-card)] p-4 rounded-md border border-[var(--wb-line)]">
                 <div className="relative shrink-0 w-14 h-14 rounded-full overflow-hidden bg-[var(--wb-card)] border-2 border-black/40 flex items-center justify-center">
                   {userAvatar ? (
                     <img
@@ -1120,7 +1120,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                     <Mail className="w-3 h-3 text-black" />
                     <span>{userEmail || "user@walkbuddy.io"}</span>
                   </p>
-                  <span className="inline-block mt-1 bg-[#f0e4cc] border border-black/40 text-gray-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                  <span className="inline-block mt-1 bg-[#f0e4cc] border border-black/40 text-gray-700 text-[9px] font-black uppercase px-2 py-0.5 rounded">
                     {userGender}
                     {derivedAge ? ` • ${derivedAge} yrs` : ""}
                   </span>
@@ -1143,7 +1143,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                   <button
                     type="button"
                     onClick={() => setShowAvatarPicker((v) => !v)}
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all active:scale-95 ${
+                    className={`flex items-center justify-center gap-2 py-2.5 rounded-md text-[11px] font-black uppercase tracking-wider border transition-all active:scale-95 ${
                       showAvatarPicker
                         ? "bg-[#ecdfc4] text-black border-black/40"
                         : "bg-[var(--wb-card)] text-[var(--wb-text)] border-[var(--wb-line)] hover:bg-[#f0e4cc]"
@@ -1155,7 +1155,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                   <button
                     type="button"
                     onClick={() => avatarUploadRef.current?.click()}
-                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider border bg-[var(--wb-card)] text-[var(--wb-text)] border-[var(--wb-line)] hover:bg-[#f0e4cc] transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-md text-[11px] font-black uppercase tracking-wider border bg-[var(--wb-card)] text-[var(--wb-text)] border-[var(--wb-line)] hover:bg-[#f0e4cc] transition-all active:scale-95"
                   >
                     <Upload className="w-4 h-4 text-black" />
                     <span>Upload Photo</span>
@@ -1172,7 +1172,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                       <span className="text-[10px] text-gray-500 font-bold">Nature Avatars</span>
                     </div>
 
-                    <div className="grid grid-cols-5 gap-2.5 bg-[var(--wb-card)] p-3 rounded-2xl border border-[var(--wb-line)] max-h-52 overflow-y-auto custom-scrollbar">
+                    <div className="grid grid-cols-5 gap-2.5 bg-[var(--wb-card)] p-3 rounded-md border border-[var(--wb-line)] max-h-52 overflow-y-auto custom-scrollbar">
                       {DEFAULT_AVATARS.map((avatar) => {
                         const isSelected = userAvatar === avatar.url;
                         return (
@@ -1186,7 +1186,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                             title={avatar.label}
                             className={`relative rounded-full aspect-square overflow-hidden transition-all duration-200 group ${
                               isSelected
-                                ? "ring-2 ring-black ring-offset-2 ring-offset-white scale-105 shadow-md"
+                                ? "ring-2 ring-black ring-offset-2 ring-offset-white scale-105"
                                 : "hover:scale-105 opacity-80 hover:opacity-100"
                             }`}
                           >
@@ -1224,7 +1224,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                   <button
                     type="button"
                     onClick={() => setEditingProfile((v) => !v)}
-                    className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all active:scale-95 ${
+                    className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-md border transition-all active:scale-95 ${
                       editingProfile
                         ? "bg-black/5 text-gray-700 border-[var(--wb-line)]"
                         : "bg-[#ecdfc4] text-black border-black/40 hover:bg-gray-300"
@@ -1255,7 +1255,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                     ].map((row) => (
                       <div
                         key={row.label}
-                        className="flex items-center justify-between gap-3 bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-xl px-3.5 py-2.5"
+                        className="flex items-center justify-between gap-3 bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-md px-3.5 py-2.5"
                       >
                         <span className="flex items-center gap-2 text-[10px] uppercase font-black tracking-wider text-gray-500">
                           {row.icon}
@@ -1281,7 +1281,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
                         placeholder="Enter full name"
-                        className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
+                        className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-md px-3.5 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
                       />
                     </div>
 
@@ -1312,7 +1312,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                         <select
                           value={userGender}
                           onChange={(e) => setUserGender(e.target.value)}
-                          className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-xl px-3 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
+                          className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-md px-3 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
                         >
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
@@ -1333,7 +1333,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                         value={userEmail}
                         onChange={(e) => setUserEmail(e.target.value)}
                         placeholder="name@example.com"
-                        className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
+                        className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-md px-3.5 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
                       />
                     </div>
 
@@ -1348,7 +1348,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                         value={userPhone}
                         onChange={(e) => setUserPhone(e.target.value.replace(/[^\d]/g, ""))}
                         placeholder="Enter digits only"
-                        className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
+                        className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-md px-3.5 py-2.5 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black transition-colors"
                         inputMode="numeric"
                         maxLength={15}
                       />
@@ -1364,7 +1364,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                           type="number"
                           value={userWeight}
                           onChange={(e) => setUserWeight(e.target.value)}
-                          className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-xl px-3.5 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+                          className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-md px-3.5 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
                         />
                       </div>
                       <div>
@@ -1375,7 +1375,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                           type="text"
                           value={dailyStepsGoal}
                           onChange={(e) => setDailyStepsGoal(e.target.value)}
-                          className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-xl px-3.5 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
+                          className="w-full bg-[var(--wb-card)] border border-[var(--wb-line)] rounded-md px-3.5 py-2 text-xs text-[var(--wb-text)] focus:outline-none focus:border-black"
                         />
                       </div>
                     </div>
@@ -1386,7 +1386,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
 
             <div className="space-y-3 mt-4">
               {profileSaveError && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-400/35 text-red-700 text-[11px] font-semibold leading-relaxed">
+                <div className="p-3 rounded-md bg-red-500/10 border border-red-400/35 text-red-700 text-[11px] font-semibold leading-relaxed">
                   {profileSaveError}
                 </div>
               )}
@@ -1396,7 +1396,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                   type="button"
                   onClick={handleSaveProfileChanges}
                   disabled={savingProfile}
-                  className="w-full bg-black text-white font-headline font-extrabold text-xs py-3.5 rounded-xl uppercase tracking-wider shadow-md hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-black text-white font-headline font-extrabold text-xs py-3.5 rounded-md uppercase tracking-wider hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {savingProfile && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>{savingProfile ? "Saving…" : "Save Profile Changes"}</span>
@@ -1406,7 +1406,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               <button
                 type="button"
                 onClick={() => setShowTerms(true)}
-                className="w-full bg-[var(--wb-card)] hover:bg-[#f0e4cc] border border-[var(--wb-line)] text-[var(--wb-text)] font-headline font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                className="w-full bg-[var(--wb-card)] hover:bg-[#f0e4cc] border border-[var(--wb-line)] text-[var(--wb-text)] font-headline font-black text-xs py-3 rounded-md uppercase tracking-wider transition-all flex items-center justify-center gap-2"
               >
                 <FileText className="w-4 h-4 text-black" />
                 <span>Terms of Use</span>
@@ -1416,7 +1416,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                 <button
                   type="button"
                   onClick={() => onSignOut()}
-                  className="w-full bg-black/5 hover:bg-black/10 border border-black/30 text-black font-headline font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-black/5 hover:bg-black/10 border border-black/30 text-black font-headline font-black text-xs py-3 rounded-md uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                 >
                   <LogOut className="w-4 h-4 text-black" />
                   <span>Sign Out</span>
@@ -1535,7 +1535,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
         <div className="workout-hud fixed inset-0 z-[3000] bg-[#f8f1e3] p-6 flex flex-col items-center border border-black/30 overflow-y-auto">
           <div className="w-full max-w-md flex justify-between items-center border-b border-black/30 pb-4 shrink-0">
             <span className="font-headline text-lg font-black text-black uppercase italic tracking-tight flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-black" />
+              <Footprints className="w-5 h-5 text-black" />
               <span>
                 {!activeSession.started
                   ? "Ready to Start"
@@ -1548,7 +1548,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               onClick={() => {
                 setActiveSession(null);
               }}
-              className="text-gray-400 hover:text-black p-1 transition-colors rounded-lg hover:bg-black/5"
+              className="text-gray-400 hover:text-black p-1 transition-colors rounded-md hover:bg-black/5"
               title="Close session"
             >
               <X className="w-6 h-6 text-black" />
@@ -1626,14 +1626,14 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
 
           {/* Only surface GPS state when something is actually wrong. */}
           {activeSession.started && activeSession.gpsError && !activeSession.demo && (
-            <div className="w-full max-w-md px-4 py-2.5 mt-4 rounded-xl text-[11px] font-bold flex items-center justify-center gap-2 border bg-[#f0e4cc] border-black/40 text-black shrink-0">
+            <div className="w-full max-w-md px-4 py-2.5 mt-4 rounded-md text-[11px] font-bold flex items-center justify-center gap-2 border bg-[#f0e4cc] border-black/40 text-black shrink-0">
               <MapPin className="w-4 h-4 text-black" />
               <span>{activeSession.gpsError}</span>
             </div>
           )}
 
           {activeSession.route && (
-            <div className="w-full max-w-md p-4 mt-4 rounded-xl bg-[#f0e4cc] border border-black/40 text-xs text-black font-bold flex items-center justify-center gap-2 shrink-0">
+            <div className="w-full max-w-md p-4 mt-4 rounded-md bg-[#f0e4cc] border border-black/40 text-xs text-black font-bold flex items-center justify-center gap-2 shrink-0">
               <MapPin className="w-5 h-5 text-black" />
               <span>Navigating {activeSession.route.location}</span>
             </div>
@@ -1646,7 +1646,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               <button
                 type="button"
                 onClick={handleSessionStart}
-                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-black text-[13px] uppercase tracking-wider transition-all bg-black text-white shadow-[0_3px_16px_rgba(0,0,0,0.2)] active:scale-95"
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-md font-headline font-black text-[13px] uppercase tracking-wider transition-all bg-black text-white active:scale-95"
               >
                 <Play className="w-6 h-6 fill-current" />
                 <span>Start</span>
@@ -1656,7 +1656,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                 <button
                   type="button"
                   onClick={handleSessionPause}
-                  className={`flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl font-headline font-black text-[11px] uppercase tracking-wider transition-all border ${
+                  className={`flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-md font-headline font-black text-[11px] uppercase tracking-wider transition-all border ${
                     activeSession.paused
                       ? "bg-[#ecdfc4] text-black border-black/40 active:scale-95"
                       : "bg-black/5 hover:bg-black/10 text-black border-black/30 active:scale-95"
@@ -1669,7 +1669,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                 <button
                   type="button"
                   onClick={handleFinishSession}
-                  className="flex flex-col items-center justify-center gap-1.5 py-3.5 bg-[#ff5a4d]/90 hover:bg-[#ff5a4d] text-white font-headline font-black text-[11px] uppercase tracking-wider rounded-xl shadow-[0_3px_16px_rgba(255,90,77,0.3)] active:scale-95 transition-all"
+                  className="flex flex-col items-center justify-center gap-1.5 py-3.5 bg-[#ff5a4d]/90 hover:bg-[#ff5a4d] text-white font-headline font-black text-[11px] uppercase tracking-wider rounded-md active:scale-95 transition-all"
                 >
                   <Square className="w-6 h-6 fill-current" />
                   <span>Finish</span>
@@ -1681,7 +1681,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               onClick={() =>
                 setActiveSession((prev) => (prev ? { ...prev, demo: !prev.demo } : null))
               }
-              className={`w-full text-center text-[11px] font-bold py-2 rounded-lg border transition-all ${
+              className={`w-full text-center text-[11px] font-bold py-2 rounded-md border transition-all ${
                 activeSession.demo
                   ? "bg-[#ecdfc4] border-black/40 text-black"
                   : "bg-black/5 border-black/30 text-gray-500 hover:text-black"
@@ -1697,7 +1697,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
 
       {/* Session Summary — shown right after Finish so the user knows where it went */}
       {completedSession && (
-        <div className="fixed inset-0 z-[3500] bg-black/85 backdrop-blur-xl flex items-center justify-center p-5 animate-fadeIn">
+        <div className="fixed inset-0 z-[3500] bg-black/85 flex items-center justify-center p-5 animate-fadeIn">
           {showFinishAnim ? (
             <div className="flex flex-col items-center justify-center gap-5">
               <div className="relative flex items-center justify-center w-24 h-24">
@@ -1712,9 +1712,9 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               </div>
             </div>
           ) : (
-          <div className="w-full max-w-sm bg-[#f8f1e3] border border-black/30 rounded-3xl p-6 space-y-5 shadow-2xl animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#f8f1e3] border border-black/30 rounded-lg p-6 space-y-5 shadow-xl animate-fadeIn">
             <div className="text-center space-y-2">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-[#f0e4cc] border border-black/30 flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto rounded-md bg-[#f0e4cc] border border-black/30 flex items-center justify-center">
                 <Check className="w-7 h-7 text-black stroke-[3]" />
               </div>
               <h3 className="font-headline text-xl font-black text-black uppercase italic tracking-tight">
@@ -1725,7 +1725,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 bg-[#f4f4f5] p-4 rounded-2xl border border-black/30 text-center">
+            <div className="grid grid-cols-3 gap-3 bg-[#f4f4f5] p-4 rounded-md border border-black/30 text-center">
               <div>
                 <div className="text-[9px] text-gray-500 uppercase font-black">Distance</div>
                 <div className="font-headline text-lg font-black text-black">
@@ -1755,7 +1755,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
                   setCompletedSession(null);
                   setActiveTab("sessions");
                 }}
-                className="w-full bg-black text-white font-headline font-black text-xs py-3.5 rounded-xl uppercase tracking-wider active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full bg-black text-white font-headline font-black text-xs py-3.5 rounded-md uppercase tracking-wider active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <Footprints className="w-4 h-4" />
                 <span>View My Sessions</span>
@@ -1763,7 +1763,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
               <button
                 type="button"
                 onClick={() => setCompletedSession(null)}
-                className="w-full bg-black/5 hover:bg-black/10 border border-black/30 text-black font-headline font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-all"
+                className="w-full bg-black/5 hover:bg-black/10 border border-black/30 text-black font-headline font-black text-xs py-3 rounded-md uppercase tracking-wider transition-all"
               >
                 Dismiss
               </button>
@@ -1773,16 +1773,15 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
         </div>
       )}
 
-
       {/* Floating Start-Session Button — on every page, opens the timer HUD */}
       {!activeSession && !completedSession && (
         <button
           onClick={handleQuickSession}
           title="Start a workout session"
           aria-label="Start a workout session"
-          className="fixed bottom-24 md:bottom-8 right-5 md:right-8 z-[90] w-16 h-16 bg-black text-white rounded-full shadow-[0_6px_22px_rgba(0,0,0,0.35)] flex items-center justify-center active:scale-90 transition-all group"
+          className="fixed bottom-24 md:bottom-8 right-5 md:right-8 z-[90] w-14 h-14 bg-black text-white rounded-md shadow-lg flex items-center justify-center active:scale-90 transition-all group"
         >
-          <Plus className="w-8 h-8 transition-transform group-hover:rotate-90 stroke-[2.5]" />
+          <Plus className="w-7 h-7 transition-transform group-hover:rotate-90 stroke-[2.5]" />
         </button>
       )}
 
@@ -1798,13 +1797,13 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
       />
 
       {/* Mobile Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 w-full z-[100] bg-[#f8f1e3]/95 backdrop-blur-2xl rounded-t-2xl shadow-[0px_-10px_30px_rgba(0,0,0,0.12)] flex justify-around items-center px-4 py-3 md:hidden border-t border-black/30">
+      <nav className="fixed bottom-0 left-0 w-full z-[100] bg-[#f8f1e3] border-t border-black/30 flex justify-around items-center px-4 py-2.5 md:hidden">
         <button
           onClick={() => {
             setActiveTab("dashboard");
             setShowPostRouteForm(false);
           }}
-          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all ${
+          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-md transition-all ${
             activeTab === "dashboard"
               ? "text-black font-black bg-[#f0e4cc]"
               : "text-gray-400"
@@ -1819,7 +1818,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
             setActiveTab("feed");
             setShowPostRouteForm(false);
           }}
-          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all ${
+          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-md transition-all ${
             activeTab === "feed"
               ? "text-black font-black bg-[#f0e4cc]"
               : "text-gray-400"
@@ -1829,13 +1828,12 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
           <span className="text-[9px] uppercase tracking-wider font-extrabold mt-1">Feed</span>
         </button>
 
-
         <button
           onClick={() => {
             setActiveTab("sessions");
             setShowPostRouteForm(false);
           }}
-          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all ${
+          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-md transition-all ${
             activeTab === "sessions"
               ? "text-black font-black bg-[#f0e4cc]"
               : "text-gray-400"
@@ -1850,7 +1848,7 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
             setActiveTab("analytics");
             setShowPostRouteForm(false);
           }}
-          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl transition-all ${
+          className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-md transition-all ${
             activeTab === "analytics"
               ? "text-black font-black bg-[#f0e4cc]"
               : "text-gray-400"

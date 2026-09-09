@@ -444,9 +444,9 @@ export default function BuddyChatModal({
     EMOJI_CATEGORIES.find((c) => c.id === activeEmojiCategory) || EMOJI_CATEGORIES[0];
 
   return (
-    <div className="fixed inset-0 z-[1200] bg-black/40 backdrop-blur-xl flex items-center justify-center p-3 sm:p-5 md:p-8 animate-fadeIn select-none">
+    <div className="fixed inset-0 z-[1200] bg-black/40 flex items-center justify-center p-3 sm:p-5 md:p-8 animate-fadeIn select-none">
       {/* Container */}
-      <div className="w-full max-w-3xl h-[88vh] max-h-[760px] bg-[var(--wb-surface)] text-[var(--wb-text)] border border-[var(--wb-line)] rounded-3xl shadow-2xl flex flex-col overflow-hidden font-sans relative">
+      <div className="w-full max-w-3xl h-[88vh] max-h-[760px] bg-[var(--wb-surface)] text-[var(--wb-text)] border border-[var(--wb-line)] rounded-lg shadow-xl flex flex-col overflow-hidden font-sans relative">
 
         {/* ================= HEADER ================= */}
         <div className="p-4 bg-[var(--wb-card)] border-b border-[var(--wb-line)] flex items-center justify-between shrink-0">
@@ -455,10 +455,10 @@ export default function BuddyChatModal({
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
                 onClick={() => setSelectedThreadId(null)}
-                className="p-1.5 rounded-xl bg-[var(--wb-surface)] text-black hover:bg-black/5 border border-[var(--wb-line)] transition-all flex items-center gap-1 shrink-0 text-xs font-bold"
+                className="p-1.5 rounded-md bg-[var(--wb-surface)] text-black hover:bg-black/5 border border-[var(--wb-line)] transition-all flex items-center gap-1 shrink-0 text-xs font-bold"
                 title="Back to All Chats"
               >
-                <ChevronLeft className="w-5 h-5 text-black" />
+                <ChevronLeft className="w-4 h-4 text-black" />
                 <span className="hidden sm:inline">Chats</span>
               </button>
 
@@ -466,7 +466,7 @@ export default function BuddyChatModal({
                 src={activeThread.buddyAvatar}
                 alt={activeThread.buddyName}
                 referrerPolicy="no-referrer"
-                className="w-10 h-10 rounded-full object-cover border border-black/20 shrink-0"
+                className="w-9 h-9 rounded-full object-cover border border-black/20 shrink-0"
               />
 
               <div className="min-w-0 flex-1">
@@ -488,11 +488,11 @@ export default function BuddyChatModal({
           ) : (
             /* Chat History List Header - Simply 'Chat' */
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-black flex items-center justify-center shadow-md shrink-0">
-                <MessageCircle className="w-5 h-5 stroke-[2.5] text-white" />
+              <div className="w-8 h-8 rounded-md bg-black flex items-center justify-center shrink-0">
+                <MessageCircle className="w-4 h-4 stroke-[2.5] text-white" />
               </div>
               <div>
-                <h3 className="font-headline font-black text-lg text-[var(--wb-text)] tracking-wide">
+                <h3 className="font-headline font-black text-base text-[var(--wb-text)] tracking-wide">
                   Chat
                 </h3>
               </div>
@@ -502,10 +502,10 @@ export default function BuddyChatModal({
           {/* Close Modal Button */}
           <button
             onClick={handleCloseModal}
-            className="p-2 rounded-xl text-gray-500 hover:text-black hover:bg-black/5 transition-colors shrink-0 ml-2"
+            className="p-2 rounded-md text-gray-500 hover:text-black hover:bg-black/5 transition-colors shrink-0 ml-2"
             title="Close Chat"
           >
-            <X className="w-5 h-5 text-black" />
+            <X className="w-4 h-4 text-black" />
           </button>
         </div>
 
@@ -522,7 +522,7 @@ export default function BuddyChatModal({
                   placeholder="Search by username or message..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[var(--wb-surface)] text-xs text-[var(--wb-text)] placeholder-gray-400 pl-9 pr-3 py-2.5 rounded-xl border border-[var(--wb-line)] focus:outline-none focus:border-black"
+                  className="w-full bg-[var(--wb-surface)] text-xs text-[var(--wb-text)] placeholder-gray-400 pl-9 pr-3 py-2.5 rounded-md border border-[var(--wb-line)] focus:outline-none focus:border-black"
                 />
               </div>
 
@@ -536,9 +536,9 @@ export default function BuddyChatModal({
                   <button
                     key={tab.id}
                     onClick={() => setFilterCategory(tab.id as any)}
-                    className={`px-3 py-1.5 rounded-xl text-[10px] font-headline font-bold uppercase transition-all ${
+                    className={`px-3 py-1.5 rounded-md text-[10px] font-headline font-bold uppercase transition-all ${
                       filterCategory === tab.id
-                        ? "bg-black text-white shadow-sm"
+                        ? "bg-black text-white"
                         : "bg-[var(--wb-surface)] text-gray-600 hover:text-black border border-[var(--wb-line)]"
                     }`}
                   >
@@ -560,7 +560,7 @@ export default function BuddyChatModal({
                   <button
                     key={thread.id}
                     onClick={() => handleSelectThread(thread.id)}
-                    className="w-full p-4 flex items-center gap-3.5 hover:bg-black/5 transition-all text-left rounded-2xl group"
+                    className="w-full p-4 flex items-center gap-3.5 hover:bg-black/5 transition-all text-left rounded-md group"
                   >
                     {/* Buddy Avatar */}
                     <div className="relative shrink-0">
@@ -568,10 +568,10 @@ export default function BuddyChatModal({
                         src={thread.buddyAvatar}
                         alt={thread.buddyName}
                         referrerPolicy="no-referrer"
-                        className="w-12 h-12 rounded-full object-cover border border-black/20 group-hover:border-black transition-colors"
+                        className="w-10 h-10 rounded-full object-cover border border-black/20 group-hover:border-black transition-colors"
                       />
                       <span
-                        className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[var(--wb-surface)] ${
+                        className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[var(--wb-surface)] ${
                           thread.status === "online" || thread.status.includes("Walking")
                             ? "bg-emerald-500"
                             : "bg-gray-300"
@@ -597,7 +597,7 @@ export default function BuddyChatModal({
                           {thread.lastMessage}
                         </p>
                         {thread.unreadCount > 0 && (
-                          <span className="bg-black text-white text-[10px] font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center shrink-0 shadow-sm leading-none">
+                          <span className="bg-black text-white text-[10px] font-black min-w-4 h-4 px-1 rounded flex items-center justify-center shrink-0 leading-none">
                             {thread.unreadCount}
                           </span>
                         )}
@@ -624,10 +624,10 @@ export default function BuddyChatModal({
                     className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                   >
                     <div
-                      className={`max-w-[85%] sm:max-w-[75%] p-3.5 rounded-2xl shadow-md text-xs leading-relaxed relative ${
+                      className={`max-w-[85%] sm:max-w-[75%] p-3 rounded-md text-xs leading-relaxed relative ${
                         isMe
-                          ? "bg-black text-white font-semibold rounded-tr-none border border-black"
-                          : "bg-[var(--wb-card)] text-[var(--wb-text)] font-medium rounded-tl-none border border-[var(--wb-line)]"
+                          ? "bg-black text-white font-semibold border border-black"
+                          : "bg-[var(--wb-card)] text-[var(--wb-text)] font-medium border border-[var(--wb-line)]"
                       }`}
                     >
                       {/* Message Text */}
@@ -645,23 +645,23 @@ export default function BuddyChatModal({
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Suggestion Chips (Without location sharing) */}
+            {/* Quick Suggestion Chips (Without emojis or location sharing) */}
             <div className="px-3 py-2 bg-[var(--wb-card)] border-t border-[var(--wb-line)] flex items-center gap-2 overflow-x-auto no-scrollbar">
               <span className="text-[9px] text-gray-500 font-black uppercase shrink-0 flex items-center gap-1">
                 <Zap className="w-3 h-3 text-black" />
                 <span>Quick:</span>
               </span>
               {[
-                "🗓️ Meet 6:30 AM Tomorrow",
-                "🥾 Ready for 5 km loop?",
-                "☕ Post-Walk Coffee?",
-                "👟 Ready to Start!",
-                "👍 Sounds good!",
+                "Meet 6:30 AM Tomorrow",
+                "Ready for 5 km loop?",
+                "Post-Walk Coffee?",
+                "Ready to Start!",
+                "Sounds good!",
               ].map((chip) => (
                 <button
                   key={chip}
                   onClick={() => handleQuickChip(chip)}
-                  className="bg-[var(--wb-surface)] hover:bg-black/5 text-gray-700 border border-[var(--wb-line)] px-3 py-1 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all active:scale-95 shrink-0"
+                  className="bg-[var(--wb-surface)] hover:bg-black/5 text-gray-700 border border-[var(--wb-line)] px-2.5 py-1 rounded-md text-[10px] font-bold whitespace-nowrap transition-all active:scale-95 shrink-0"
                 >
                   {chip}
                 </button>
@@ -678,7 +678,7 @@ export default function BuddyChatModal({
                       key={cat.id}
                       type="button"
                       onClick={() => setActiveEmojiCategory(cat.id)}
-                      className={`text-base p-1.5 rounded-xl transition-transform ${
+                      className={`text-base p-1.5 rounded-md transition-transform ${
                         activeEmojiCategory === cat.id
                           ? "bg-black/10 scale-110"
                           : "opacity-60 hover:opacity-100 hover:scale-105"
@@ -701,7 +701,7 @@ export default function BuddyChatModal({
                         key={`${emoji}-${idx}`}
                         type="button"
                         onClick={() => setInputText((prev) => prev + emoji)}
-                        className="text-xl p-1 rounded-lg hover:bg-black/10 active:scale-125 transition-transform flex items-center justify-center"
+                        className="text-xl p-1 rounded-md hover:bg-black/10 active:scale-125 transition-transform flex items-center justify-center"
                       >
                         {emoji}
                       </button>
@@ -716,7 +716,7 @@ export default function BuddyChatModal({
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className={`p-2 rounded-xl transition-colors ${
+                className={`p-2 rounded-md transition-colors ${
                   showEmojiPicker ? "bg-black text-white" : "text-gray-600 hover:text-black hover:bg-black/5"
                 }`}
                 title="Emojis"
@@ -734,16 +734,16 @@ export default function BuddyChatModal({
                     handleSendMessage();
                   }
                 }}
-                className="flex-1 bg-[var(--wb-surface)] text-xs text-[var(--wb-text)] placeholder-gray-400 px-4 py-2.5 rounded-xl border border-[var(--wb-line)] focus:outline-none focus:border-black"
+                className="flex-1 bg-[var(--wb-surface)] text-xs text-[var(--wb-text)] placeholder-gray-400 px-3.5 py-2.5 rounded-md border border-[var(--wb-line)] focus:outline-none focus:border-black"
               />
 
               <button
                 type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim()}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                className={`w-9 h-9 rounded-md flex items-center justify-center transition-all ${
                   inputText.trim()
-                    ? "bg-black shadow-md scale-105"
+                    ? "bg-black"
                     : "bg-[var(--wb-surface)] border border-[var(--wb-line)]"
                 }`}
               >

@@ -190,11 +190,11 @@ export default function BuddyMatch({
       : null;
 
   return (
-    <div className="glass-panel rounded-2xl p-5 space-y-4 border border-black/15">
+    <div className="bg-[var(--wb-surface)] rounded-md p-5 space-y-4 border border-[var(--wb-line)]">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-black/5 border border-black/15 flex items-center justify-center shrink-0">
-          <Users className="w-5 h-5 text-black" />
+        <div className="w-9 h-9 rounded-md bg-black/5 border border-black/15 flex items-center justify-center shrink-0">
+          <Users className="w-4 h-4 text-black" />
         </div>
         <div className="min-w-0">
           <h3 className="font-headline text-sm font-extrabold uppercase tracking-wide text-[var(--wb-text)]">
@@ -207,7 +207,7 @@ export default function BuddyMatch({
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-400/35 text-red-600 text-[11px] font-semibold leading-relaxed">
+        <div className="flex items-start gap-2 p-3 rounded-md bg-red-500/10 border border-red-400/35 text-red-600 text-[11px] font-semibold leading-relaxed">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -226,10 +226,10 @@ export default function BuddyMatch({
                   key={r}
                   type="button"
                   onClick={() => setRadiusKm(r)}
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all ${
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-bold border transition-all ${
                     radiusKm === r
-                      ? "bg-black text-white shadow-md"
-                      : "bg-black/5 text-slate-600 hover:bg-black/10"
+                      ? "bg-black text-white border-black"
+                      : "bg-black/5 text-slate-700 border-black/15 hover:bg-black/10"
                   }`}
                 >
                   {r} km
@@ -241,7 +241,7 @@ export default function BuddyMatch({
           <button
             type="button"
             onClick={handleFindBuddy}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-headline font-black text-xs uppercase tracking-wider bg-black text-white shadow-md active:scale-[0.98] transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-md font-headline font-black text-xs uppercase tracking-wider bg-black text-white active:scale-[0.98] transition-all"
           >
             <Radar className="w-4 h-4" />
             <span>Find a buddy nearby</span>
@@ -252,7 +252,7 @@ export default function BuddyMatch({
       {/* ---------- LOCATING / SEARCHING ---------- */}
       {(phase === "locating" || phase === "searching") && (
         <div className="space-y-3">
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-black/5 border border-black/15">
+          <div className="flex items-center gap-3 p-4 rounded-md bg-black/5 border border-black/15">
             <Loader2 className="w-5 h-5 animate-spin text-black shrink-0" />
             <div className="min-w-0">
               <div className="text-xs font-extrabold text-[var(--wb-text)]">
@@ -271,7 +271,7 @@ export default function BuddyMatch({
           <button
             type="button"
             onClick={handleCancel}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider bg-black/5 text-slate-600 hover:bg-black/10 transition-all"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-md text-[11px] font-black uppercase tracking-wider bg-black/5 text-slate-700 border border-black/15 hover:bg-black/10 transition-all"
           >
             <X className="w-3.5 h-3.5" />
             <span>Cancel search</span>
@@ -282,9 +282,9 @@ export default function BuddyMatch({
       {/* ---------- MATCHED: the shared meeting point ---------- */}
       {phase === "matched" && match && (
         <div className="space-y-3">
-          <div className="p-4 rounded-xl bg-black/5 border border-black/20 space-y-2">
+          <div className="p-4 rounded-md bg-black/5 border border-black/20 space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center shrink-0">
+              <div className="w-5 h-5 rounded bg-black flex items-center justify-center shrink-0">
                 <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
               </div>
               <span className="text-xs font-black uppercase tracking-wider text-black">
@@ -322,7 +322,7 @@ export default function BuddyMatch({
             href={`https://www.google.com/maps/dir/?api=1&destination=${match.meet_lat},${match.meet_lng}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-headline font-black text-xs uppercase tracking-wider bg-black text-white shadow-md active:scale-[0.98] transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-md font-headline font-black text-xs uppercase tracking-wider bg-black text-white active:scale-[0.98] transition-all"
           >
             <Navigation className="w-4 h-4" />
             <span>Navigate to the spot</span>
@@ -332,14 +332,14 @@ export default function BuddyMatch({
             <button
               type="button"
               onClick={() => handleFinish("completed")}
-              className="py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider bg-black/5 text-slate-600 hover:bg-black/10 transition-all"
+              className="py-2.5 rounded-md text-[11px] font-black uppercase tracking-wider bg-black/5 text-slate-700 border border-black/15 hover:bg-black/10 transition-all"
             >
               We met up
             </button>
             <button
               type="button"
               onClick={() => handleFinish("cancelled")}
-              className="py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider bg-black/5 text-slate-600 hover:bg-black/10 transition-all"
+              className="py-2.5 rounded-md text-[11px] font-black uppercase tracking-wider bg-black/5 text-slate-700 border border-black/15 hover:bg-black/10 transition-all"
             >
               Cancel match
             </button>

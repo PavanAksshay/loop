@@ -715,22 +715,21 @@ export default function HomeWorkoutApp() {
             </div>
             <div className="hw-categories-scroll">
               {[
-                { label: "All Workouts", icon: "⚡", cat: "All" },
-                { label: "Full Body", icon: "🏋️", cat: "Full Body" },
-                { label: "Upper Body", icon: "💪", cat: "Upper Body" },
-                { label: "Lower Body", icon: "🦵", cat: "Lower Body" },
-                { label: "Chest Special", icon: "🛡️", cat: "Chest" },
-                { label: "Back & Lats", icon: "🦅", cat: "Back" },
-                { label: "HIIT & Cardio", icon: "🔥", cat: "HIIT" },
-                { label: "Core & Abs", icon: "🎯", cat: "Core" },
-                { label: "Mobility", icon: "🧘", cat: "Mobility" },
+                { label: "All Workouts", cat: "All" },
+                { label: "Full Body", cat: "Full Body" },
+                { label: "Upper Body", cat: "Upper Body" },
+                { label: "Lower Body", cat: "Lower Body" },
+                { label: "Chest Special", cat: "Chest" },
+                { label: "Back & Lats", cat: "Back" },
+                { label: "HIIT & Cardio", cat: "HIIT" },
+                { label: "Core & Abs", cat: "Core" },
+                { label: "Mobility", cat: "Mobility" },
               ].map((item) => (
                 <button
                   key={item.label}
                   className={`hw-category-chip ${selectedCategory === item.cat ? "active" : ""}`}
                   onClick={() => setSelectedCategory(item.cat)}
                 >
-                  <span className="hw-chip-icon">{item.icon}</span>
                   <span>{item.label}</span>
                 </button>
               ))}
@@ -742,7 +741,7 @@ export default function HomeWorkoutApp() {
               onClick={() => openRoutine(filteredRoutines[0] || ALL_ROUTINES[0])}
             >
               <div className="hw-hero-bg-overlay"></div>
-              <div className="hw-hero-badge-pill">🔥 FEATURED 10-SLOT PROGRAM</div>
+              <div className="hw-hero-badge-pill">FEATURED 10-SLOT PROGRAM</div>
               <div className="hw-hero-content">
                 <h3 className="hw-hero-title">
                   {(filteredRoutines[0] || ALL_ROUTINES[0]).title}
@@ -1824,7 +1823,7 @@ export default function HomeWorkoutApp() {
                     />
                   </div>
                   <p className="text-[9.5px] text-[#7A97B0] font-medium mt-1 leading-tight">
-                    {rec.remainingToLevelUp <= 1 ? "🔥 Almost ready to level up!" : `${rec.remainingToLevelUp} sessions until next level evaluation.`}
+                    {rec.remainingToLevelUp <= 1 ? "Almost ready to level up." : `${rec.remainingToLevelUp} sessions until next level evaluation.`}
                   </p>
                 </div>
               </div>
@@ -1842,11 +1841,11 @@ export default function HomeWorkoutApp() {
                   <span>Preview Next Workout ({rec.nextRoutine.title.split(" ")[1] || "Routine"})</span>
                 </button>
                 <button
-                  className="w-full py-2 rounded-full border border-[#CBD5E1] bg-white text-xs font-bold text-[#486581] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                  className="w-full py-2 rounded-md border border-[#CBD5E1] bg-white text-xs font-bold text-[#486581] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                   onClick={() => {
                     setShowCongratsModal(false);
                     setCurrentScreen("home");
-                    showToast("Workout saved to your profile! 🔥");
+                    showToast("Workout saved to your profile.");
                   }}
                 >
                   Return to Dashboard
