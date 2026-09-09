@@ -70,8 +70,11 @@ export function normalizeUsername(input: string): string {
 }
 
 export function validateUsername(input: string): string | null {
-  const normalized = normalizeUsername(input);
-  if (!normalized) return "Username is required.";
+  if (!input || !input.trim()) return "Username is required.";
+  if (/\s/.test(input)) {
+    return "invalid username, no spaces are allowed";
+  }
+  const normalized = input.trim();
   if (normalized.length < 3 || normalized.length > 20) {
     return "Username must be between 3 and 20 characters.";
   }

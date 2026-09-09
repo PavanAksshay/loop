@@ -129,11 +129,16 @@ const EMOJI_CATEGORIES = [
   },
 ];
 
-// Initial Loop DM threads with usernames only
+// Clean format helper for usernames (strips @, trims, replaces spaces with underscores)
+export function formatCleanUsername(name: string): string {
+  return (name || "").replace(/^@+/, "").trim().replace(/\s+/g, "_").toLowerCase();
+}
+
+// Initial Loop DM threads with usernames only (no @ or real names)
 export const INITIAL_CHAT_THREADS: ChatThread[] = [
   {
     id: "thread-1",
-    buddyName: "@rohan_verma",
+    buddyName: "rohan_verma",
     buddyAvatar: "https://images.unsplash.com/photo-1543549790-8b5f4a028cfb?auto=format&fit=crop&w=300&q=80",
     status: "online",
     distanceStr: "",
@@ -181,7 +186,7 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-2",
-    buddyName: "@ananya_m",
+    buddyName: "ananya_m",
     buddyAvatar: "https://images.unsplash.com/photo-1484406566174-9da000fda645?auto=format&fit=crop&w=300&q=80",
     status: "online",
     distanceStr: "",
@@ -215,7 +220,7 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-3",
-    buddyName: "@vikram_seth",
+    buddyName: "vikram_seth",
     buddyAvatar: "https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&w=300&q=80",
     status: "offline",
     distanceStr: "",
@@ -249,7 +254,7 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-4",
-    buddyName: "@karthik_r",
+    buddyName: "karthik_r",
     buddyAvatar: "https://images.unsplash.com/photo-1564466809058-bf4114d55352?auto=format&fit=crop&w=300&q=80",
     status: "offline",
     distanceStr: "",
@@ -276,7 +281,7 @@ export const INITIAL_CHAT_THREADS: ChatThread[] = [
   },
   {
     id: "thread-5",
-    buddyName: "@divya_m",
+    buddyName: "divya_m",
     buddyAvatar: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=300&q=80",
     status: "online",
     distanceStr: "",
@@ -466,7 +471,7 @@ export default function BuddyChatModal({
 
               <div className="min-w-0 flex-1">
                 <h3 className="font-headline font-extrabold text-sm text-[var(--wb-text)] truncate">
-                  {activeThread.buddyName.startsWith("@") ? activeThread.buddyName : `@${activeThread.buddyName}`}
+                  {formatCleanUsername(activeThread.buddyName)}
                 </h3>
                 <p className="text-[10px] text-gray-500 flex items-center gap-1.5 font-mono">
                   <span
@@ -514,7 +519,7 @@ export default function BuddyChatModal({
                 <Search className="w-4 h-4 text-black absolute left-3" />
                 <input
                   type="text"
-                  placeholder="Search by @username or message..."
+                  placeholder="Search by username or message..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[var(--wb-surface)] text-xs text-[var(--wb-text)] placeholder-gray-400 pl-9 pr-3 py-2.5 rounded-xl border border-[var(--wb-line)] focus:outline-none focus:border-black"
@@ -579,7 +584,7 @@ export default function BuddyChatModal({
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
                         <h4 className="font-headline font-bold text-sm text-[var(--wb-text)] truncate">
-                          {thread.buddyName.startsWith("@") ? thread.buddyName : `@${thread.buddyName}`}
+                          {formatCleanUsername(thread.buddyName)}
                         </h4>
                         <span className="text-[10px] text-gray-500 shrink-0 font-mono">
                           {thread.lastMessageTime}
@@ -721,7 +726,7 @@ export default function BuddyChatModal({
 
               <input
                 type="text"
-                placeholder={`Message ${activeThread.buddyName}...`}
+                placeholder={`Message ${formatCleanUsername(activeThread.buddyName)}...`}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => {

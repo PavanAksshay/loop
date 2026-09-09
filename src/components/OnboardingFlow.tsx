@@ -396,6 +396,7 @@ export default function OnboardingFlow({
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
+  const [usernameCustomError, setUsernameCustomError] = useState<string | null>(null);
   /** Date of birth (YYYY-MM-DD). Age is derived from it for the `age` column. */
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("Prefer not to say");
@@ -469,24 +470,26 @@ export default function OnboardingFlow({
   }, [user, profile]);
 
   useEffect(() => {
-    const normalized = normalizeUsername(username);
-    if (!normalized) {
+    if (!username || !username.trim()) {
       setUsernameStatus("idle");
+      setUsernameCustomError(null);
       return;
     }
 
-    const validationError = validateUsername(normalized);
+    const validationError = validateUsername(username);
     if (validationError) {
       setUsernameStatus("invalid");
+      setUsernameCustomError(validationError);
       return;
     }
 
+    setUsernameCustomError(null);
     let cancelled = false;
     setUsernameStatus("checking");
 
     const timeout = window.setTimeout(async () => {
       try {
-        const available = await isUsernameAvailable(normalized, user?.id);
+        const available = await isUsernameAvailable(username.trim(), user?.id);
         if (!cancelled) {
           setUsernameStatus(available ? "available" : "taken");
         }
@@ -759,7 +762,7 @@ export default function OnboardingFlow({
       return;
     }
 
-    const usernameValidationError = validateUsername(normalizedUsername);
+    const usernameValidationError = validateUsername(username);
     if (usernameValidationError) {
       setError(usernameValidationError);
       return;
@@ -952,7 +955,9 @@ export default function OnboardingFlow({
               {usernameStatus === "checking" && <span className="text-gray-500">Checking availability…</span>}
               {usernameStatus === "available" && <span className="text-black">✔ Username available</span>}
               {usernameStatus === "taken" && <span className="text-red-600">❌ Username already taken</span>}
-              {usernameStatus === "invalid" && <span className="text-red-600">❌ Username must be 3-20 chars, letters/numbers/underscores only, and cannot start with "_".</span>}
+              {usernameStatus === "invalid" && (
+                <span className="text-red-600">❌ {usernameCustomError || "invalid username, no spaces are allowed"}</span>
+              )}
             </div>
           )}
         </div>

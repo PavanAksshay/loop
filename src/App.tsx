@@ -40,7 +40,7 @@ import PeopleSearch from "./components/PeopleSearch";
 import ScenicRoutes, { TrailPrefill } from "./components/ScenicRoutes";
 import WeeklyProgress from "./components/WeeklyProgress";
 import FogTransition from "./components/FogTransition";
-import BuddyChatModal, { INITIAL_CHAT_THREADS } from "./components/BuddyChatModal";
+import BuddyChatModal, { INITIAL_CHAT_THREADS, formatCleanUsername } from "./components/BuddyChatModal";
 import TermsOfUse from "./components/TermsOfUse";
 import SessionHistory from "./components/SessionHistory";
 import DatePicker from "./components/DatePicker";
@@ -386,7 +386,16 @@ export default function App({ profile, onSignOut }: AppProps = {}) {
   // Buddy DMs WhatsApp Chat Threads State
   const [chatThreads, setChatThreads] = useState<ChatThread[]>(() => {
     const saved = localStorage.getItem("walkbuddy_chat_threads");
-    return saved ? JSON.parse(saved) : INITIAL_CHAT_THREADS;
+    if (!saved) return INITIAL_CHAT_THREADS;
+    try {
+      const parsed: ChatThread[] = JSON.parse(saved);
+      return parsed.map((t) => ({
+        ...t,
+        buddyName: formatCleanUsername(t.buddyName),
+      }));
+    } catch {
+      return INITIAL_CHAT_THREADS;
+    }
   });
 
   useEffect(() => {
